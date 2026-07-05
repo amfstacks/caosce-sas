@@ -107,5 +107,34 @@ class AdminSetupController {
         }
         return json_encode(['success' => false]);
     }
+
+    // Inside your AdminSetupController.php
+public function uploadSchoolLogo() {
+    // Assuming you fetched the school_id using the CURRENT_TENANT_SLUG
+    $schoolId = $_POST['school_id']; 
+    $file = $_FILES['school_logo'];
+
+    // Ensure it's a valid image
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (in_array($file['type'], $allowedTypes)) {
+        
+        // Create a safe, unique filename
+        $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'logo_' . $schoolId . '_' . time() . '.' . $extension;
+        $destination = '../public/assets/logos/' . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            // Update the schools table with the filepath and mark setup as complete
+            $this->db->query("UPDATE schools SET logo_path = :logo, is_setup_complete = 1 WHERE id = :id");
+            $this->db->bind(':logo', $filename);
+            $this->db->bind(':id', $schoolId);
+            $this->db->execute();
+            
+            echo json_encode(['success' => true]);
+            return;
+        }
+    }
+    echo json_encode(['success' => false, 'message' => 'Invalid file upload.']);
+}
 }
 ?>

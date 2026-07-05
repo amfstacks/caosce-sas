@@ -11,36 +11,21 @@ class AuthController {
         $password = $inputData['password'];
         $deviceSig = $inputData['device_signature'] ?? null;
 
-        // Helper function to check if user belongs to the slug in the URL
-        $validateTenant = function($userSchoolId) {
-            if (CURRENT_TENANT_SLUG !== null) {
-                $this->db->query("SELECT id FROM schools WHERE slug = :slug");
-                $this->db->bind(':slug', CURRENT_TENANT_SLUG);
-                $school = $this->db->single();
-                
-                // If the URL slug doesn't match the user's actual school, reject them
-                if ($school && $school['id'] !== $userSchoolId && $userSchoolId !== null) {
-                    return false;
-                }
-            }
-            return true;
-        };
-
-        // 1. ADMIN ROUTING
+        // 1. ADMIN ROUTING (Does not require a device signature)
         $this->db->query("SELECT * FROM users WHERE username = :username AND role IN ('superadmin', 'subadmin')");
         $this->db->bind(':username', $username);
         $admin = $this->db->single();
         
         if ($admin && password_verify($password, $admin['password_hash'])) {
-            if (!$validateTenant($admin['school_id'])) return json_encode(['success' => false, 'message' => 'Invalid school portal.']);
             return json_encode(['success' => true, 'redirect_url' => '/admin/dashboard']);
         }
 
-        // --- SECURITY GATE: For roles below, a device signature MUST be present ---
+        // --- SECURITY GATE: For all following roles, a device signature MUST be present in the DB ---
         if (!$deviceSig) {
             return json_encode(['success' => false, 'message' => 'Access Denied: This device has not been bound by an Administrator.']);
         }
 
+        // Look up the device binding to see what this laptop is configured to do
         $this->db->query("
             SELECT db.*, s.station_type, s.order_sequence 
             FROM device_bindings db
@@ -50,7 +35,9 @@ class AuthController {
         $this->db->bind(':sig', $deviceSig);
         $binding = $this->db->single();
 
-        if (!$binding) return json_encode(['success' => false, 'message' => 'Access Denied: Invalid device signature.']);
+        if (!$binding) {
+             return json_encode(['success' => false, 'message' => 'Access Denied: Invalid or compromised device signature.']);
+        }
 
         // 2. EXAMINER ROUTING
         $this->db->query("SELECT * FROM users WHERE username = :username AND role = 'examiner'");
@@ -58,9 +45,10 @@ class AuthController {
         $examiner = $this->db->single();
 
         if ($examiner && password_verify($password, $examiner['password_hash'])) {
-            if (!$validateTenant($examiner['school_id'])) return json_encode(['success' => false, 'message' => 'Invalid school portal.']);
-            if ($binding['examiner_id'] !== $examiner['id']) return json_encode(['success' => false, 'message' => 'Not assigned to this laptop.']);
-            
+            // Verify this specific examiner is assigned to this specific laptop
+            if ($binding['examiner_id'] !== $examiner['id']) {
+                return json_encode(['success' => false, 'message' => 'You are not assigned to this specific station laptop.']);
+            }
             return json_encode(['success' => true, 'redirect_url' => '/examiner/rubric?station_id=' . $binding['station_id']]);
         }
 
@@ -70,13 +58,17 @@ class AuthController {
         $student = $this->db->single();
 
         if ($student && password_verify($password, $student['password_hash'])) {
-            if (!$validateTenant($student['school_id'])) return json_encode(['success' => false, 'message' => 'Invalid school portal.']);
-            
+            // Check if student is part of the active exam session bound to this device
             $this->db->query("SELECT * FROM exam_session_student WHERE student_id = :sid AND exam_session_id = :eid");
             $this->db->bind(':sid', $student['id']);
             $this->db->bind(':eid', $binding['exam_session_id']);
-            if (!$this->db->single()) return json_encode(['success' => false, 'message' => 'Not enrolled in this active exam session.']);
+            $isEnrolled = $this->db->single();
 
+            if (!$isEnrolled) {
+                return json_encode(['success' => false, 'message' => 'You are not enrolled in the exam currently running on this device.']);
+            }
+
+            // Route based on hardware configuration
             if ($binding['station_type'] === 'cbt') {
                 return json_encode(['success' => true, 'redirect_url' => '/student/cbt?station_id=' . $binding['station_id']]);
             } else {

@@ -25,6 +25,12 @@ $router->get('/admin/setup', 'views/admin/device_setup.php');
 $router->get('/admin/sessions', 'views/admin/sessions/index.php');
 $router->get('/admin/sessions/manage', 'views/admin/sessions/manage.php');
 
+// device
+$router->get('/admin/bind-device', 'views/admin/bind-device.php');
+$router->get('/admin/binding-codes', 'views/admin/binding-codes.php');
+
+$router->get('/setup/device', 'views/setup/device.php');
+
 
 $router->get('/student/cbt', 'views/student/cbt.php');
 $router->get('/examiner/rubric', 'views/examiner/rubric.php');

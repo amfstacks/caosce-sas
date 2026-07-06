@@ -61,6 +61,10 @@ class AuthController {
             if (!$validateTenant($examiner['school_id'])) return json_encode(['success' => false, 'message' => 'Invalid school portal.']);
             if ($binding['examiner_id'] !== $examiner['id']) return json_encode(['success' => false, 'message' => 'Not assigned to this laptop.']);
             
+            if ($binding['examiner_id'] !== $examiner['id']) {
+                // Login is successful, but they are at the wrong physical laptop
+                return json_encode(['success' => true, 'redirect_url' => '/examiner/mismatch']);
+            }
             return json_encode(['success' => true, 'redirect_url' => '/examiner/rubric?station_id=' . $binding['station_id']]);
         }
 

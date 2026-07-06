@@ -249,10 +249,15 @@
                                                     </template>
                                                 </select>
                                             </div>
+
+                                            <div x-show="stationModal.station.type === 'cbt'">
+                                                <label class="block text-sm font-medium text-slate-700">Score per Question (Marks)</label>
+                                                <input type="number" min="1" x-model="stationModal.station.score_per_question" class="mt-1 block w-full rounded-md border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border" placeholder="e.g. 2">
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- 2. Question Bank Manager (CBT & Procedure Instructions) -->
+                                    <!-- 2. Question Bank Manager -->
                                     <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                                         <div class="flex justify-between items-center border-b pb-2 mb-4">
                                             <h3 class="text-lg font-medium text-slate-900">Question / Scenario Bank</h3>
@@ -272,21 +277,51 @@
                                         <!-- Question List -->
                                         <div class="space-y-4">
                                             <template x-for="(q, index) in stationModal.station.questions" :key="index">
-                                                <div class="bg-slate-50 p-4 rounded-md border border-slate-200 relative">
+                                                <div class="bg-slate-50 p-4 rounded-md border border-slate-200 relative transition-colors duration-300" :class="q.saved ? 'border-green-400 bg-green-50/30' : ''">
                                                     <button @click="removeQuestion(index)" class="absolute top-4 right-4 text-red-500 hover:text-red-700" title="Delete Question">
                                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                                     </button>
                                                     
                                                     <div class="pr-10">
-                                                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1" x-text="'Question ' + (index + 1)"></label>
-                                                        <textarea x-model="q.text" rows="2" class="block w-full rounded-md border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border mb-3" placeholder="Enter question text..."></textarea>
-                                                        
-                                                        <div x-show="stationModal.station.type === 'cbt'" class="grid grid-cols-2 gap-3">
-                                                            <input type="text" x-model="q.optA" placeholder="Option A" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
-                                                            <input type="text" x-model="q.optB" placeholder="Option B" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
-                                                            <input type="text" x-model="q.optC" placeholder="Option C" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
-                                                            <input type="text" x-model="q.optD" placeholder="Option D" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
+                                                        <div class="flex items-center justify-between mb-2">
+                                                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide" x-text="'Question ' + (index + 1)"></label>
+                                                            
+                                                            <!-- Procedure Scoring Field -->
+                                                            <div x-show="stationModal.station.type === 'procedure'" class="flex items-center gap-2">
+                                                                <span class="text-xs font-medium text-slate-600">Marks:</span>
+                                                                <input type="number" min="1" x-model="q.score" class="block w-20 rounded-md border-slate-300 py-1 px-2 text-sm border focus:ring-blue-500 focus:border-blue-500">
+                                                            </div>
                                                         </div>
+                                                        
+                                                        <textarea x-model="q.text" rows="2" class="block w-full rounded-md border-slate-300 py-2 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border mb-3" placeholder="Enter question or procedure text..."></textarea>
+                                                        
+                                                        <!-- CBT Options & Answer Dropdown -->
+                                                        <div x-show="stationModal.station.type === 'cbt'">
+                                                            <div class="grid grid-cols-2 gap-3 mb-3">
+                                                                <input type="text" x-model="q.optA" placeholder="Option A" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
+                                                                <input type="text" x-model="q.optB" placeholder="Option B" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
+                                                                <input type="text" x-model="q.optC" placeholder="Option C" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
+                                                                <input type="text" x-model="q.optD" placeholder="Option D" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border">
+                                                            </div>
+                                                            <div class="w-full md:w-1/2">
+                                                                <label class="block text-xs font-medium text-slate-700 mb-1">Correct Answer</label>
+                                                                <select x-model="q.correct_answer" class="block w-full rounded-md border-slate-300 py-1.5 px-3 text-sm border bg-white focus:ring-blue-500 focus:border-blue-500">
+                                                                    <option value="">Select Correct Option...</option>
+                                                                    <option value="A">Option A</option>
+                                                                    <option value="B">Option B</option>
+                                                                    <option value="C">Option C</option>
+                                                                    <option value="D">Option D</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Individual Question Action Bar -->
+                                                        <div class="mt-4 flex justify-end">
+                                                            <button @click="markQuestionSaved(q)" type="button" class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md transition-colors" :class="q.saved ? 'bg-green-100 text-green-700' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'">
+                                                                <span x-text="q.saved ? '✓ Saved' : 'Save Question'"></span>
+                                                            </button>
+                                                        </div>
+
                                                     </div>
                                                 </div>
                                             </template>
@@ -364,12 +399,12 @@
                     { id: 'ex-2', name: 'Dr. Iretioluwa Ibiloye' }
                 ],
                 stations: [
-                    { id: 'st-1', sequence: 1, type: 'procedure', title: 'IV Cannulation', examiner_id: 'ex-1', confirmed: true, questions: [{text: 'Provide patient consent script'}] },
-                    { id: 'st-2', sequence: 2, type: 'cbt', title: '', examiner_id: null, confirmed: false, questions: [] },
+                    { id: 'st-1', sequence: 1, type: 'procedure', title: 'IV Cannulation', examiner_id: 'ex-1', confirmed: true, questions: [{text: 'Provide patient consent script', score: 2, saved: false}] },
+                    { id: 'st-2', sequence: 2, type: 'cbt', title: '', score_per_question: 1, examiner_id: null, confirmed: false, questions: [] },
                     { id: 'st-3', sequence: 3, type: 'procedure', title: '', examiner_id: null, confirmed: false, questions: [] },
-                    { id: 'st-4', sequence: 4, type: 'cbt', title: 'Anatomy Review', examiner_id: null, confirmed: true, questions: [{text: 'Identify the humerus.'}] },
+                    { id: 'st-4', sequence: 4, type: 'cbt', title: 'Anatomy Review', score_per_question: 2, examiner_id: null, confirmed: true, questions: [{text: 'Identify the humerus.', optA: 'Arm bone', optB: 'Leg bone', optC: 'Ribs', optD: 'Skull', correct_answer: 'A', saved: false}] },
                     { id: 'st-5', sequence: 5, type: 'procedure', title: '', examiner_id: null, confirmed: false, questions: [] },
-                    { id: 'st-6', sequence: 6, type: 'cbt', title: '', examiner_id: null, confirmed: false, questions: [] }
+                    { id: 'st-6', sequence: 6, type: 'cbt', title: '', score_per_question: 1, examiner_id: null, confirmed: false, questions: [] }
                 ],
                 stationModal: { open: false, station: null },
 
@@ -422,25 +457,17 @@
                 // --- Station Status Logic ---
                 getStationStatuses(station) {
                     let statuses = [];
-                    // 1. Title Status
                     statuses.push({ label: 'Title Set', active: !!station.title });
-                    
-                    // 2. Question/Scenario Status
                     statuses.push({ label: 'Question Set', active: station.questions && station.questions.length > 0 });
-                    
-                    // 3. Assignment Status (Procedure Only)
                     if (station.type === 'procedure') {
                         statuses.push({ label: 'Station Assigned', active: !!station.examiner_id });
                     }
-                    
-                    // 4. Confirmation Status
                     statuses.push({ label: 'Station Confirmed', active: station.confirmed });
                     return statuses;
                 },
 
                 // --- Station Modal Methods ---
                 openStationWorkspace(station) {
-                    // Deep clone to prevent auto-saving on type
                     this.stationModal.station = JSON.parse(JSON.stringify(station));
                     this.stationModal.open = true;
                 },
@@ -455,30 +482,35 @@
                     let file = e.target.files[0];
                     if(file) {
                         this.showToast('Parsed ' + file.name + ' successfully.');
-                        // Mock adding questions from file
                         this.addEmptyQuestion();
                         e.target.value = '';
                     }
                 },
                 addEmptyQuestion() {
-                    this.stationModal.station.questions.push({ text: '', optA: '', optB: '', optC: '', optD: '' });
+                    this.stationModal.station.questions.push({ 
+                        text: '', 
+                        optA: '', optB: '', optC: '', optD: '', 
+                        correct_answer: '', 
+                        score: 1, 
+                        saved: false 
+                    });
                 },
                 removeQuestion(index) {
                     this.stationModal.station.questions.splice(index, 1);
                 },
+                markQuestionSaved(q) {
+                    q.saved = true;
+                    // Reset the visual state after 2 seconds
+                    setTimeout(() => { q.saved = false; }, 2000);
+                },
                 saveStationDraft() {
-                    // Find index and update master array
                     let idx = this.stations.findIndex(s => s.id === this.stationModal.station.id);
                     this.stationModal.station.confirmed = false;
                     this.stations[idx] = JSON.parse(JSON.stringify(this.stationModal.station));
-                    
-                    // Call API here...
-                    
                     this.showToast('Station draft saved safely.');
                     this.closeStationWorkspace();
                 },
                 confirmStation() {
-                    // Validate basic requirements before confirming
                     if(!this.stationModal.station.title) {
                         alert("Cannot confirm: Station Title is required.");
                         return;
@@ -488,11 +520,15 @@
                         return;
                     }
 
+                    // For CBT, ensure score per question is set
+                    if(this.stationModal.station.type === 'cbt' && !this.stationModal.station.score_per_question) {
+                        alert("Cannot confirm: Please set the Score per Question (Marks).");
+                        return;
+                    }
+
                     let idx = this.stations.findIndex(s => s.id === this.stationModal.station.id);
                     this.stationModal.station.confirmed = true;
                     this.stations[idx] = JSON.parse(JSON.stringify(this.stationModal.station));
-                    
-                    // Call API here to lock it in...
                     
                     this.showToast('Station Configuration Confirmed!');
                     this.closeStationWorkspace();

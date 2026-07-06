@@ -6,18 +6,14 @@
     <title>CASOCE - Examiner Station</title>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Include the Global Sync Engine -->
-    <!-- <script src="/public/js/sync-engine.js"></script> -->
-    
     <style>
+        /* Hide number input arrows for clean partial marking */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+        
         .touch-btn { transition: transform 0.1s; }
         .touch-btn:active { transform: scale(0.95); }
-        .modal-scroll::-webkit-scrollbar { width: 6px; }
-        .modal-scroll::-webkit-scrollbar-track { background: transparent; }
-        .modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        /* Smooth scrolling for the whole container */
-        .modal-scroll { scroll-behavior: smooth; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans antialiased h-screen flex flex-col overflow-hidden" x-data="examinerController()" x-cloak>
@@ -36,6 +32,7 @@
             </div>
             
             <div class="flex items-center gap-4">
+                <!-- Offline Badge Indicator -->
                 <div class="flex items-center gap-2 bg-slate-800 rounded-full px-3 py-1 border border-slate-700">
                     <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" :class="isOnline ? 'bg-green-400' : 'bg-amber-400'"></span>
@@ -48,6 +45,7 @@
         </div>
     </header>
 
+    <!-- Main Content Area -->
     <main class="flex-grow relative overflow-hidden bg-slate-100 flex flex-col">
         
         <!-- ========================================== -->
@@ -64,8 +62,9 @@
                 </div>
 
                 <div class="space-y-4 max-h-[400px] overflow-y-auto pr-2 modal-scroll">
+                    <!-- Search Filter -->
                     <div class="relative mb-4">
-                        <input type="text" x-model="searchQuery" placeholder="Search by Matric or Name..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 shadow-sm text-slate-800">
+                        <input type="text" x-model="searchQuery" placeholder="Search by Matric or Name..." class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm text-slate-800">
                         <svg class="w-5 h-5 text-slate-400 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
 
@@ -74,18 +73,25 @@
                                 :disabled="student.graded"
                                 class="w-full text-left p-4 rounded-xl border transition-all touch-btn flex justify-between items-center"
                                 :class="student.graded ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed' : 'bg-white border-slate-300 hover:border-indigo-500 hover:shadow-md'">
+                            
                             <div>
                                 <p class="font-bold text-slate-900 text-lg" x-text="student.matric"></p>
                                 <p class="text-slate-500 text-sm" x-text="student.name"></p>
                             </div>
+                            
                             <div x-show="student.graded" class="flex items-center text-green-600 bg-green-50 px-3 py-1 rounded-full text-xs font-bold">
-                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Graded
+                                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                Graded
                             </div>
                             <div x-show="!student.graded" class="text-indigo-600 bg-indigo-50 px-4 py-2 rounded-lg text-sm font-bold">
                                 Select &rarr;
                             </div>
                         </button>
                     </template>
+                    
+                    <div x-show="filteredStudents.length === 0" class="text-center py-6 text-slate-500">
+                        No matching candidates found.
+                    </div>
                 </div>
             </div>
         </div>
@@ -95,9 +101,10 @@
         <!-- ========================================== -->
         <div x-show="activeStudent" x-transition.opacity class="absolute inset-0 flex flex-col" style="display: none;">
             
+            <!-- Context Header (Student & Timer) -->
             <div class="bg-white border-b border-slate-200 shadow-sm flex-shrink-0 z-10 p-4 lg:px-8 flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <button @click="cancelExam()" class="text-slate-400 hover:text-slate-600 p-2 touch-btn" title="Cancel">
+                    <button @click="cancelExam()" class="text-slate-400 hover:text-slate-600 p-2 touch-btn" title="Cancel and go back">
                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                     <div class="pl-4 border-l border-slate-200">
@@ -106,40 +113,56 @@
                         <p class="text-sm text-slate-500" x-text="activeStudent?.name"></p>
                     </div>
                 </div>
+                
+                <!-- Timer -->
+                <div class="flex items-center gap-3 bg-slate-100 rounded-lg p-3 border border-slate-200">
+                    <svg class="w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="text-2xl font-mono font-bold tracking-wider" :class="timeRemaining <= 60 ? 'text-red-600' : 'text-slate-700'" x-text="formattedTime"></span>
+                </div>
             </div>
 
-            <!-- Rubric Grid -->
-            <div id="rubric-container" class="flex-grow overflow-y-auto p-4 lg:p-8 bg-slate-50 modal-scroll">
-                <div class="max-w-5xl mx-auto space-y-4 pb-48"> <!-- Extra bottom padding so last item can scroll up -->
+            <!-- Rubric Scrollable Area -->
+            <div class="flex-grow overflow-y-auto p-4 lg:p-8 bg-slate-50 modal-scroll">
+                <div class="max-w-4xl mx-auto space-y-4 pb-32">
                     
                     <template x-for="(item, index) in rubric" :key="index">
-                        <!-- Dynamic ID assigned here for auto-scrolling target -->
-                        <div :id="'question-step-' + index" class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-colors duration-300" :class="item.multiplier !== null ? 'border-l-4 border-l-indigo-500 bg-indigo-50/10 opacity-75' : 'border-l-4 border-l-transparent'">
-                            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 transition-colors" :class="item.awarded !== null ? 'border-l-4 border-l-indigo-500' : ''">
+                            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 
+                                <!-- Question Text -->
                                 <div class="flex-grow">
-                                    <div class="flex items-center justify-between lg:justify-start gap-4 mb-2">
+                                    <div class="flex items-center gap-2 mb-2">
                                         <span class="bg-slate-100 text-slate-600 text-xs font-bold px-2 py-1 rounded-md" x-text="'Step ' + (index + 1)"></span>
-                                        <span class="text-slate-500 text-sm font-semibold" x-text="'Question Score: ' + item.score + ' marks'"></span>
+                                        <span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-1 rounded-md" x-text="'Max: ' + item.score + ' pts'"></span>
                                     </div>
                                     <p class="text-lg text-slate-800 font-medium leading-snug" x-text="item.text"></p>
                                 </div>
                                 
-                                <!-- Fractional Scoring Buttons -->
-                                <div class="flex-shrink-0 flex items-center gap-2 bg-slate-100 p-2 rounded-xl border border-slate-200 overflow-x-auto">
-                                    <template x-for="fraction in fractions" :key="fraction.val">
-                                        <button @click="awardFraction(index, fraction.val)"
-                                                class="w-14 h-14 rounded-lg font-bold text-lg transition-all touch-btn flex items-center justify-center flex-shrink-0"
-                                                :class="item.multiplier === fraction.val ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-300 ring-offset-1' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50'"
-                                                x-html="fraction.label">
-                                        </button>
-                                    </template>
-                                </div>
+                                <!-- Scoring Controls -->
+                                <div class="flex-shrink-0 flex items-center gap-2 bg-slate-50 p-2 rounded-xl border border-slate-100">
+                                    <!-- Quick Zero -->
+                                    <button @click="awardScore(index, 0)" 
+                                            class="w-14 h-14 rounded-lg font-bold text-lg transition-all touch-btn"
+                                            :class="item.awarded === 0 ? 'bg-red-500 text-white shadow-inner' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'">
+                                        0
+                                    </button>
+                                    
+                                    <!-- Partial Mark Input -->
+                                    <div class="relative w-16 h-14">
+                                        <input type="number" 
+                                               x-model.number="item.awarded" 
+                                               @input="validateScore(index)"
+                                               min="0" :max="item.score" 
+                                               class="w-full h-full text-center text-xl font-bold rounded-lg border focus:ring-2 focus:ring-indigo-500 outline-none transition-colors"
+                                               :class="(item.awarded !== null && item.awarded > 0 && item.awarded < item.score) ? 'bg-amber-100 border-amber-300 text-amber-800' : 'bg-white border-slate-300 text-slate-900'">
+                                    </div>
 
-                                <!-- Earned Points Display -->
-                                <div class="hidden lg:flex flex-col items-center justify-center w-24 border-l border-slate-200 pl-4">
-                                    <span class="text-xs text-slate-400 uppercase font-bold tracking-wider">Earned</span>
-                                    <span class="text-2xl font-black" :class="item.multiplier !== null ? 'text-indigo-600' : 'text-slate-300'" x-text="item.multiplier !== null ? (item.score * item.multiplier) : '-'"></span>
+                                    <!-- Quick Full Marks -->
+                                    <button @click="awardScore(index, item.score)" 
+                                            class="w-14 h-14 rounded-lg font-bold text-lg transition-all touch-btn"
+                                            :class="item.awarded === item.score ? 'bg-green-500 text-white shadow-inner' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-100'">
+                                        <span x-text="item.score"></span>
+                                    </button>
                                 </div>
 
                             </div>
@@ -152,7 +175,7 @@
             <!-- Sticky Submission Footer -->
             <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-10px_20px_rgba(0,0,0,0.05)] p-4 lg:px-8 flex justify-between items-center z-20">
                 <div class="flex flex-col">
-                    <span class="text-sm font-bold text-slate-500 uppercase">Calculated Total Score</span>
+                    <span class="text-sm font-bold text-slate-500 uppercase">Total Score</span>
                     <div class="flex items-baseline gap-1">
                         <span class="text-4xl font-black text-indigo-600" x-text="totalScore"></span>
                         <span class="text-lg font-bold text-slate-400" x-text="'/ ' + maxPossibleScore"></span>
@@ -168,6 +191,7 @@
             </div>
 
         </div>
+
     </main>
 
     <!-- Global Toast Notification -->
@@ -184,21 +208,19 @@
                 isOnline: navigator.onLine,
                 toast: { visible: false, message: '' },
                 
+                // Data pulled from Black Box (localStorage)
                 station: {},
                 students: [],
                 searchQuery: '',
                 
+                // Exam State
                 activeStudent: null,
                 rubric: [],
-
-                // Fractional Multiplier Definition using HTML strict formatting
-                fractions: [
-                    { label: '0', val: 0 },
-                    { label: '<sup>1</sup>&frasl;<sub>4</sub>', val: 0.25 },
-                    { label: '<sup>1</sup>&frasl;<sub>2</sub>', val: 0.5 },
-                    { label: '<sup>3</sup>&frasl;<sub>4</sub>', val: 0.75 },
-                    { label: '1', val: 1 }
-                ],
+                
+                // Timer State
+                examDurationMinutes: 10, // Admin configured time
+                timeRemaining: 0,
+                timerInterval: null,
 
                 init() {
                     window.addEventListener('online', () => this.isOnline = true);
@@ -213,82 +235,81 @@
                 },
 
                 loadOfflinePayload() {
+                    // In a real app, this parses localStorage.getItem('caosce_offline_payload')
+                    // For the preview, we mock the secure payload injected by the Binding Wizard
                     this.station = {
                         id: 'st-1',
                         sequence: 1,
-                        title: 'Comprehensive Intravenous Cannulation Procedure',
+                        title: 'Intravenous Cannulation Procedure',
                         examiner_name: 'Dr. Sarah Samson',
                         questions: [
-                            { id: 101, text: 'Introduces self to the patient, confirms patient identity using two identifiers, and explains the procedure clearly.', score: 2 },
-                            { id: 102, text: 'Obtains informed verbal consent from the patient before proceeding.', score: 1 },
-                            { id: 103, text: 'Washes hands thoroughly following WHO guidelines and dons non-sterile gloves.', score: 2 },
-                            { id: 104, text: 'Assembles all necessary equipment (cannula, alcohol wipes, tourniquet, flush, dressing) on a clean tray.', score: 2 },
-                            { id: 105, text: 'Applies tourniquet correctly (not too tight) 5-10cm above the intended insertion site.', score: 2 },
-                            { id: 106, text: 'Identifies a suitable, prominent vein by palpation.', score: 2 },
-                            { id: 107, text: 'Cleans the insertion site with an alcohol swab using 30 seconds of friction and allows it to dry completely.', score: 3 },
-                            { id: 108, text: 'Anchors the vein by gently pulling the skin taut below the insertion site.', score: 2 },
-                            { id: 109, text: 'Inserts the cannula bevel-up at a 15-30 degree angle and observes for primary flashback of blood.', score: 5 },
-                            { id: 110, text: 'Lowers the angle, advances the catheter smoothly over the needle into the vein, and observes secondary flashback.', score: 4 },
-                            { id: 111, text: 'Releases the tourniquet before completely removing the needle to prevent bleeding.', score: 3 },
-                            { id: 112, text: 'Disposes of the sharp needle immediately into the designated sharps bin and applies the sterile dressing.', score: 2 }
+                            { id: 101, text: 'Introduces self, confirms patient ID, and explains the procedure clearly.', score: 2 },
+                            { id: 102, text: 'Washes hands thoroughly and dons non-sterile gloves.', score: 2 },
+                            { id: 103, text: 'Applies tourniquet correctly and identifies a suitable vein.', score: 3 },
+                            { id: 104, text: 'Cleans the site with alcohol swab (30s friction, allows to dry).', score: 2 },
+                            { id: 105, text: 'Inserts cannula at 15-30 degree angle, observing for primary flashback.', score: 5 },
+                            { id: 106, text: 'Advances catheter, releases tourniquet, and disposes of sharps safely.', score: 4 }
                         ]
                     };
 
                     this.students = [
                         { id: 1, matric: 'NS/2026/001', name: 'Ayomide Balogun', graded: false },
                         { id: 2, matric: 'NS/2026/002', name: 'Chioma Eze', graded: false },
-                        { id: 3, matric: 'NS/2026/003', name: 'Obinna Okafor', graded: false }
+                        { id: 3, matric: 'NS/2026/003', name: 'Obinna Okafor', graded: false },
+                        { id: 4, matric: 'NS/2026/004', name: 'Fatima Bello', graded: false }
                     ];
                 },
 
                 get filteredStudents() {
                     if (!this.searchQuery) return this.students;
                     let q = this.searchQuery.toLowerCase();
-                    return this.students.filter(s => s.matric.toLowerCase().includes(q) || s.name.toLowerCase().includes(q));
+                    return this.students.filter(s => 
+                        s.matric.toLowerCase().includes(q) || 
+                        s.name.toLowerCase().includes(q)
+                    );
                 },
 
                 startExam(student) {
                     this.activeStudent = student;
+                    
+                    // Clone the station questions into an active rubric state
                     this.rubric = this.station.questions.map(q => ({
                         ...q,
-                        multiplier: null // null means the examiner has not tapped a button yet
+                        awarded: null // null means not yet graded
                     }));
-                    
-                    // Reset scroll position to top when a new exam starts
-                    setTimeout(() => {
-                        let container = document.getElementById('rubric-container');
-                        if(container) container.scrollTop = 0;
-                    }, 50);
+
+                    this.startTimer();
                 },
 
                 cancelExam() {
                     if(confirm('Cancel grading for this student? All currently entered marks will be lost.')) {
                         this.activeStudent = null;
+                        this.stopTimer();
                     }
                 },
 
-                // Apply the tapped fraction and trigger auto-scroll
-                awardFraction(index, fractionValue) {
-                    this.rubric[index].multiplier = fractionValue;
+                // --- Scoring Logic ---
 
-                    // Auto-scroll logic: If there is a next question, scroll to it smoothly
-                    if (index < this.rubric.length - 1) {
-                        // 300ms delay gives the UI time to show the button press before moving the screen
-                        setTimeout(() => {
-                            let nextStepEl = document.getElementById('question-step-' + (index + 1));
-                            if (nextStepEl) {
-                                nextStepEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            }
-                        }, 300); 
+                awardScore(index, value) {
+                    this.rubric[index].awarded = value;
+                },
+
+                validateScore(index) {
+                    let item = this.rubric[index];
+                    // Prevent typing numbers higher than max score
+                    if (item.awarded > item.score) {
+                        item.awarded = item.score;
+                    }
+                    // Prevent negative numbers
+                    if (item.awarded < 0) {
+                        item.awarded = 0;
                     }
                 },
 
                 get totalScore() {
-                    let total = this.rubric.reduce((sum, item) => {
-                        let earned = item.multiplier !== null ? (item.score * item.multiplier) : 0;
-                        return sum + earned;
+                    return this.rubric.reduce((total, item) => {
+                        return total + (item.awarded || 0);
                     }, 0);
-                    return parseFloat(total.toFixed(2));
                 },
 
                 get maxPossibleScore() {
@@ -296,23 +317,52 @@
                 },
 
                 get isRubricComplete() {
-                    return this.rubric.length > 0 && this.rubric.every(item => item.multiplier !== null);
+                    // Check if every item has an awarded value that is not null
+                    return this.rubric.length > 0 && this.rubric.every(item => item.awarded !== null);
                 },
+
+                // --- Timer Logic ---
+
+                startTimer() {
+                    this.timeRemaining = this.examDurationMinutes * 60;
+                    this.timerInterval = setInterval(() => {
+                        if (this.timeRemaining > 0) {
+                            this.timeRemaining--;
+                        } else {
+                            this.stopTimer();
+                            // In high stakes exams, time up usually auto-submits or locks the UI.
+                            alert("Time is up for this station!");
+                        }
+                    }, 1000);
+                },
+
+                stopTimer() {
+                    clearInterval(this.timerInterval);
+                },
+
+                get formattedTime() {
+                    let m = Math.floor(this.timeRemaining / 60).toString().padStart(2, '0');
+                    let s = (this.timeRemaining % 60).toString().padStart(2, '0');
+                    return `${m}:${s}`;
+                },
+
+                // --- Submission & Offline Sync Logic ---
 
                 submitGrade() {
                     if (!this.isRubricComplete) return;
 
+                    // 1. Build the Data Payload
                     let resultPayload = {
                         student_id: this.activeStudent.id,
                         matric: this.activeStudent.matric,
                         station_id: this.station.id,
                         total_score: this.totalScore,
                         max_possible: this.maxPossibleScore,
-                        breakdown: this.rubric.map(r => ({ id: r.id, earned: (r.score * r.multiplier) })),
+                        breakdown: this.rubric.map(r => ({ id: r.id, awarded: r.awarded })),
                         timestamp: Date.now()
                     };
 
-                    // Push to the offline syncing queue
+                    // 2. Save to Offline Queue (Black Box)
                     let syncQueue = JSON.parse(localStorage.getItem('caosce_sync_queue') || '[]');
                     syncQueue.push({
                         endpoint: '/api/sync/procedure-score',
@@ -321,17 +371,17 @@
                     });
                     localStorage.setItem('caosce_sync_queue', JSON.stringify(syncQueue));
 
-                    // Immediately tell the global background worker to attempt a sync right now
-                    if (typeof window.CAOSCE_BackgroundSync === 'function') {
-                        window.CAOSCE_BackgroundSync();
+                    // 3. Mark student as graded so they can't be selected again locally
+                    let studentIndex = this.students.findIndex(s => s.id === this.activeStudent.id);
+                    if (studentIndex > -1) {
+                        this.students[studentIndex].graded = true;
                     }
 
-                    // Reset UI
-                    let studentIndex = this.students.findIndex(s => s.id === this.activeStudent.id);
-                    if (studentIndex > -1) this.students[studentIndex].graded = true;
-
+                    // 4. Reset UI
+                    this.stopTimer();
                     this.activeStudent = null;
-                    this.showToast(`Score securely saved and queued for sync.`);
+                    
+                    this.showToast(`Score of ${resultPayload.total_score} securely saved and queued for sync.`);
                 },
 
                 logout() {

@@ -12,13 +12,22 @@ class Router {
 
     public function dispatch($uri, $method) {
         // Strip query string variables from the URI
-        $uri = explode('?', $uri)[0];
+        // $uri = str_replace('/pro/caosce_app', '', $uri);
+        // $uri = explode('?', $uri)[0];
         
-        // Trim slashes so we don't get empty array elements
-        $segments = explode('/', trim($uri, '/')); 
+        // // Trim slashes so we don't get empty array elements
+        // $segments = explode('/', trim($uri, '/')); 
         
-        $slug = null;
-        $routePath = $uri; // Default to the exact URI if no slug is found
+        $uri = str_replace('/pro/caosce_app', '', $uri);
+    
+    // 2. Strip query string variables
+    $uri = explode('?', $uri)[0];
+    
+    // 3. Trim slashes
+    $segments = explode('/', trim($uri, '/')); 
+    
+    $slug = null;
+    $routePath = $uri;
 
         // We assume any first segment that isn't a core folder/API is a school slug
         // e.g., URL is "yourschool.com/yag/login" -> $segments[0] is 'yag'
@@ -64,6 +73,8 @@ class Router {
                 
                 $inputData = json_decode(file_get_contents('php://input'), true) ?? $_POST;
                 $controller->$methodName($inputData);
+                header('Content-Type: application/json'); // Tell the browser to expect JSON
+                echo $controller->$methodName($inputData);
                 return;
             }
         }

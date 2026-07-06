@@ -1,9 +1,9 @@
 <?php
 // Database Constants
 define('DB_HOST', 'localhost');
-define('DB_USER', 'caosce_db_user');
-define('DB_PASS', 'your_secure_password');
-define('DB_NAME', 'caosce_database');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_NAME', 'ca_os_skill');
 
 // App Constants
 define('APPROOT', dirname(__FILE__) . '/app');

@@ -1,4 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+?>
+<?php
 require_once '../config.php';
 require_once APPROOT . '/Core/Database.php';
 require_once APPROOT . '/Core/Router.php';
@@ -10,6 +15,17 @@ $router = new Router();
 
 // --- WEB ROUTES (Views) ---
 $router->get('/login', 'views/auth/login.php');
+$router->get('/admin/dashboard', 'views/admin/dashboard.php');
+// $router->get('/admin/sessions', 'views/admin/sessions.php');
+$router->get('/admin/setup', 'views/admin/device_setup.php');
+
+
+
+//sessions
+$router->get('/admin/sessions', 'views/admin/sessions/index.php');
+$router->get('/admin/sessions/manage', 'views/admin/sessions/manage.php');
+
+
 $router->get('/student/cbt', 'views/student/cbt.php');
 $router->get('/examiner/rubric', 'views/examiner/rubric.php');
 

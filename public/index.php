@@ -13,6 +13,8 @@ require_once APPROOT . '/Core/UuidHelper.php';
 
 $router = new Router();
 
+$router->get('/api/tenant-info', ['AuthController', 'getTenantInfo']);
+
 // --- WEB ROUTES (Views) ---
 $router->get('/login', 'views/auth/login.php');
 $router->get('/admin/dashboard', 'views/admin/dashboard.php');

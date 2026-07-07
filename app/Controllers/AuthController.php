@@ -90,5 +90,32 @@ class AuthController {
 
         return json_encode(['success' => false, 'message' => 'Invalid credentials']);
     }
+
+    public function getTenantInfo($inputData = null) {
+    if (!defined('CURRENT_TENANT_SLUG') || CURRENT_TENANT_SLUG === null) {
+        return json_encode(['success' => false, 'message' => 'No workspace specified.']);
+    }
+// sleep(10);
+    $this->db->query("SELECT name, logo_path ,cover_image_path FROM schools WHERE slug = :slug ");
+    $this->db->bind(':slug', CURRENT_TENANT_SLUG);
+    $school = $this->db->single();
+
+    if ($school) {
+        $baseDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+
+        // 2. Concatenate the Cover Image path if a filename exists
+        if (!empty($school['cover_image_path'])) {
+            $school['cover_image_path'] = $baseDir . '/uploads/' . CURRENT_TENANT_SLUG . '/' . $school['cover_image_path'];
+        }
+
+        // 3. Concatenate the Logo path if a filename exists
+        if (!empty($school['logo_path'])) {
+            $school['logo_path'] = $baseDir . '/uploads/' . CURRENT_TENANT_SLUG . '/' . $school['logo_path'];
+        }
+        return json_encode(['success' => true, 'payload' => $school]);
+    }
+
+    return json_encode(['success' => false, 'message' => 'School not found or license inactive.']);
+}
 }
 ?>

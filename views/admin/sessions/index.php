@@ -1,80 +1,102 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASOCE - Session Management</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased" x-data="sessionIndexController()">
+<?php 
+$pageTitle = "Exam Sessions Management"; 
+$activeMenu = "sessions"; 
+include '../views/layouts/header.php'; 
+?>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Header -->
-        <div class="sm:flex sm:items-center sm:justify-between mb-8">
+<body class="bg-slate-50 font-sans antialiased h-screen flex overflow-hidden" x-data="sessionIndexController()" x-cloak>
+
+    <!-- Sidebar -->
+    <?php include '../views/layouts/admin_sidebar.php'; ?>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        
+        <!-- Topbar -->
+        <header class="bg-white h-20 border-b border-slate-200 flex items-center justify-between px-8 sm:px-10 flex-shrink-0 z-10">
             <div>
-                <h1 class="text-2xl font-bold leading-7 text-slate-900 sm:truncate sm:text-3xl sm:tracking-tight">
-                    Exam Sessions
-                </h1>
-                <p class="mt-1 text-sm text-slate-500">
-                    Manage all your objective structured clinical examinations across departments.
-                </p>
+                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Exam Sessions</h1>
+                <p class="text-sm text-slate-500 font-medium mt-0.5">Manage and provision all objective clinical examinations.</p>
             </div>
-            <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-                <button @click="openModal()" type="button" class="block rounded-md bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                    + Create New Session
-                </button>
-            </div>
-        </div>
+            <button @click="openModal()" class="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/40 transition-all active:scale-95">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                New Session
+            </button>
+        </header>
 
-        <!-- Data Table -->
-        <div class="mt-8 flow-root">
-            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                    <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                        <table class="min-w-full divide-y divide-slate-300">
-                            <thead class="bg-slate-100">
-                                <tr>
-                                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">Session Title</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Scheduled Date</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Department</th>
-                                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">Status</th>
-                                    <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6"><span class="sr-only">Actions</span></th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200 bg-white">
-                                <template x-for="session in sessions" :key="session.id">
-                                    <tr>
-                                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 sm:pl-6" x-text="session.title"></td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500" x-text="formatDate(session.scheduled_date)"></td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500" x-text="session.department_name"></td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-sm">
-                                            <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                                                  :class="session.status === 'active' ? 'bg-green-50 text-green-700 ring-green-600/20' : 'bg-slate-50 text-slate-600 ring-slate-500/10'"
-                                                  x-text="session.status.toUpperCase()">
-                                            </span>
-                                        </td>
-                                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                            <button @click="openModal(session)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit Parameters</button>
-                                            
-                                            <!-- The deep-dive link into the specific session workspace -->
-                                            <a :href="'/<?php echo CURRENT_TENANT_SLUG; ?>/admin/sessions/manage?id=' + session.id" class="text-blue-600 hover:text-blue-900 font-bold">Open Workspace &rarr;</a>
-                                        </td>
-                                    </tr>
-                                </template>
-                                <tr x-show="sessions.length === 0">
-                                    <td colspan="5" class="py-10 text-center text-sm text-slate-500">No exam sessions found. Create one to get started.</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Scrollable Main Content -->
+        <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-8 sm:p-10 z-0">
+            
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                <table class="min-w-full divide-y divide-slate-100">
+                    <thead class="bg-slate-50/80">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Session Title</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Department</th>
+                            <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="relative px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 bg-white">
+                        
+                        <tr x-show="isLoadingInitial">
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-400 font-medium">
+                                <svg class="animate-spin h-6 w-6 text-blue-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Loading sessions...
+                            </td>
+                        </tr>
 
-        <!-- Slide-over Modal for Create/Edit -->
-        <div x-show="isModalOpen" class="relative z-10" aria-labelledby="slide-over-title" role="dialog" aria-modal="true" style="display: none;">
-            <div x-show="isModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity"></div>
+                        <template x-for="session in sessions" :key="session.id">
+                            <tr class="hover:bg-slate-50 transition-colors group">
+                                <td class="whitespace-nowrap px-6 py-5 text-sm font-bold text-slate-900" x-text="session.title"></td>
+                                <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-600 font-medium" x-text="formatDate(session.scheduled_date)"></td>
+                                <td class="whitespace-nowrap px-6 py-5 text-sm text-slate-600" x-text="session.department_name"></td>
+                                <td class="whitespace-nowrap px-6 py-5 text-sm">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wide border"
+                                          :class="{
+                                              'bg-emerald-50 text-emerald-700 border-emerald-200': session.status === 'active',
+                                              'bg-amber-50 text-amber-700 border-amber-200': session.status === 'draft',
+                                              'bg-slate-100 text-slate-600 border-slate-200': session.status === 'closed'
+                                          }"
+                                          x-text="session.status">
+                                    </span>
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-5 text-right text-sm font-medium">
+                                    <button @click="openModal(session)" class="text-slate-400 hover:text-blue-600 transition-colors mr-4" title="Edit Parameters">
+                                        <svg class="w-5 h-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                                    </button>
+                                    
+                                    <a :href="getBaseApiUrl() + '/admin/session-control?id=' + session.id" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-700 hover:bg-slate-900 hover:text-white text-xs font-bold rounded-lg transition-all mr-2">
+                                        Summary
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
+                                    </a>
+
+                                    <a :href="getBaseApiUrl() + '/admin/sessions/manage?id=' + session.id" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white text-xs font-bold rounded-lg transition-all">
+                                        Manage
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    </a>
+                                </td>
+                            </tr>
+                        </template>
+
+                        <tr x-show="sessions.length === 0 && !isLoadingInitial">
+                            <td colspan="5" class="px-6 py-16 text-center text-slate-500">
+                                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                                    <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                                </div>
+                                <p class="text-base font-bold text-slate-700 mb-1">No Exam Sessions Found</p>
+                                <p class="text-sm">Click "New Session" to provision your first examination.</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <!-- Slide-over Modal -->
+        <div x-show="isModalOpen" class="relative z-50" aria-labelledby="slide-over-title" role="dialog" aria-modal="true" style="display: none;">
+            <div x-show="isModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"></div>
             
             <div class="fixed inset-0 overflow-hidden">
                 <div class="absolute inset-0 overflow-hidden">
@@ -88,51 +110,53 @@
                              x-transition:leave-end="translate-x-full" 
                              class="pointer-events-auto w-screen max-w-md">
                             
-                            <form @submit.prevent="saveSession" class="flex h-full flex-col divide-y divide-slate-200 bg-white shadow-xl">
-                                <div class="flex min-h-0 flex-1 flex-col overflow-y-scroll py-6 px-4 sm:px-6">
-                                    <div class="flex items-start justify-between">
-                                        <h2 class="text-lg font-semibold leading-6 text-slate-900" x-text="isEditing ? 'Edit Session Parameters' : 'Create New Session'"></h2>
-                                        <div class="ml-3 flex h-7 items-center">
-                                            <button type="button" @click="closeModal()" class="rounded-md bg-white text-slate-400 hover:text-slate-500 focus:outline-none">
-                                                <span class="sr-only">Close panel</span>
-                                                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mt-6 flex flex-col gap-5">
+                            <form @submit.prevent="saveSession" class="flex h-full flex-col bg-white shadow-2xl border-l border-slate-200">
+                                <div class="flex items-center justify-between px-6 py-6 border-b border-slate-100 bg-slate-50/50">
+                                    <h2 class="text-xl font-bold text-slate-800" x-text="isEditing ? 'Edit Session' : 'New Session'"></h2>
+                                    <button type="button" @click="closeModal()" class="rounded-full p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex-1 overflow-y-auto px-6 py-8">
+                                    <div class="space-y-6">
                                         <div>
-                                            <label for="title" class="block text-sm font-medium leading-6 text-slate-900">Session Title</label>
-                                            <div class="mt-2">
-                                                <input type="text" x-model="form.title" id="title" required class="block w-full rounded-md border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
-                                            </div>
+                                            <label class="block text-sm font-bold text-slate-700 mb-2">Session Title</label>
+                                            <input type="text" x-model="form.title" required placeholder="e.g., Year 3 OSCE Final" class="block w-full rounded-xl border-slate-300 bg-slate-50 py-3 px-4 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:bg-white transition-colors">
                                         </div>
                                         
                                         <div>
-                                            <label for="date" class="block text-sm font-medium leading-6 text-slate-900">Scheduled Date</label>
-                                            <div class="mt-2">
-                                                <input type="date" x-model="form.scheduled_date" id="date" required class="block w-full rounded-md border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
-                                            </div>
+                                            <label class="block text-sm font-bold text-slate-700 mb-2">Scheduled Date</label>
+                                            <input type="date" x-model="form.scheduled_date" required class="block w-full rounded-xl border-slate-300 bg-slate-50 py-3 px-4 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:bg-white transition-colors">
                                         </div>
                                         
                                         <div>
-                                            <label for="department" class="block text-sm font-medium leading-6 text-slate-900">Department</label>
-                                            <div class="mt-2">
-                                                <select x-model="form.department_id" id="department" required class="block w-full rounded-md border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6">
-                                                    <option value="">Select Department...</option>
-                                                    <option value="dept-uuid-1">General Nursing (NS)</option>
-                                                    <option value="dept-uuid-2">Midwifery (MW)</option>
-                                                </select>
-                                            </div>
+                                            <label class="block text-sm font-bold text-slate-700 mb-2">Department</label>
+                                            <select x-model="form.department_id" required class="block w-full rounded-xl border-slate-300 bg-slate-50 py-3 px-4 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:bg-white transition-colors">
+                                                <option value="" disabled>Select Department...</option>
+                                                <template x-for="dept in departments" :key="dept.id">
+                                                    <option :value="dept.id" x-text="dept.name + ' (' + dept.dept_code.toUpperCase() + ')'"></option>
+                                                </template>
+                                            </select>
                                         </div>
+
+                                        <!-- STATUS DROPDOWN (Only visible when editing an existing session) -->
+                                        <div x-show="isEditing">
+                                            <label class="block text-sm font-bold text-slate-700 mb-2">Session Status</label>
+                                            <select x-model="form.status" required class="block w-full rounded-xl border-slate-300 bg-slate-50 py-3 px-4 text-sm text-slate-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:bg-white transition-colors">
+                                                <option value="draft">Draft (Setup Phase)</option>
+                                                <option value="active">Active (Exam in Progress)</option>
+                                                <option value="closed">Closed (Completed)</option>
+                                            </select>
+                                        </div>
+
                                     </div>
                                 </div>
-                                <div class="flex flex-shrink-0 justify-end px-4 py-4">
-                                    <button type="button" @click="closeModal()" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">Cancel</button>
-                                    <button type="submit" class="ml-4 inline-flex justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" :disabled="isLoading">
-                                        <span x-text="isLoading ? 'Saving...' : 'Save Session'"></span>
+                                
+                                <div class="border-t border-slate-100 px-6 py-5 bg-slate-50 flex justify-end gap-3">
+                                    <button type="button" @click="closeModal()" class="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 transition-colors">Cancel</button>
+                                    <button type="submit" class="inline-flex justify-center rounded-xl bg-blue-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-colors" :disabled="isLoading">
+                                        <span x-text="isLoading ? 'Saving...' : 'Save Configuration'"></span>
                                     </button>
                                 </div>
                             </form>
@@ -142,44 +166,63 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        const API_BASE = '/<?php echo CURRENT_TENANT_SLUG; ?>/api/admin/sessions';
-
         function sessionIndexController() {
             return {
                 sessions: [],
+                departments: [],
                 isModalOpen: false,
                 isEditing: false,
                 isLoading: false,
-                form: { id: null, title: '', scheduled_date: '', department_id: '' },
+                isLoadingInitial: true,
+                form: { id: null, title: '', scheduled_date: '', department_id: '', status: 'draft' },
 
                 init() {
+                    this.fetchDepartments();
                     this.fetchSessions();
+                },
+
+                getBaseApiUrl() {
+                    const tenantSlug = '<?php echo CURRENT_TENANT_SLUG ?? ""; ?>';
+                    let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
+                    return tenantSlug ? `${basePath}/${tenantSlug}` : basePath;
                 },
 
                 formatDate(dateString) {
                     if(!dateString) return '';
-                    return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                    return new Date(dateString).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+                },
+
+                async fetchDepartments() {
+                    try {
+                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/departments');
+                        let data = await response.json();
+                        if (data.success) { this.departments = data.payload; }
+                    } catch (e) { console.error('Failed to load departments'); }
                 },
 
                 async fetchSessions() {
-                    // Placeholder for API fetch. In production: await fetch(API_BASE)
-                    this.sessions = [
-                        { id: '1111-2222', title: 'Maternal Health Practical', scheduled_date: '2026-08-15', department_name: 'Midwifery (MW)', status: 'active' },
-                        { id: '3333-4444', title: 'Anatomy Baseline Exam', scheduled_date: '2026-09-01', department_name: 'General Nursing (NS)', status: 'pending' }
-                    ];
+                    this.isLoadingInitial = true;
+                    try {
+                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/sessions');
+                        let data = await response.json();
+                        if (data.success) { this.sessions = data.payload; }
+                    } catch (e) { 
+                        console.error('Failed to load sessions'); 
+                    } finally {
+                        this.isLoadingInitial = false;
+                    }
                 },
 
                 openModal(session = null) {
                     if (session) {
                         this.isEditing = true;
-                        this.form = { ...session }; // Clone the data
+                        this.form = { ...session };
                     } else {
                         this.isEditing = false;
-                        this.form = { id: null, title: '', scheduled_date: '', department_id: '' };
+                        this.form = { id: null, title: '', scheduled_date: '', department_id: '', status: 'draft' };
                     }
                     this.isModalOpen = true;
                 },
@@ -191,26 +234,21 @@
                 async saveSession() {
                     this.isLoading = true;
                     try {
-                        // In production: send this.form to your PHP backend via POST/PUT
-                        console.log('Saving payload:', this.form);
+                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/sessions/save', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(this.form)
+                        });
                         
-                        // Simulate network delay
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        
-                        // Optimistic UI update for mockup purposes
-                        if(!this.isEditing) {
-                            this.form.id = 'new-uuid-' + Date.now();
-                            this.form.status = 'pending';
-                            this.form.department_name = 'Selected Dept';
-                            this.sessions.unshift({...this.form});
+                        let data = await response.json();
+                        if (data.success) {
+                            await this.fetchSessions();
+                            this.closeModal();
                         } else {
-                            let index = this.sessions.findIndex(s => s.id === this.form.id);
-                            if(index !== -1) this.sessions[index] = {...this.form};
+                            alert(data.message || 'Failed to save session');
                         }
-                        
-                        this.closeModal();
                     } catch (error) {
-                        console.error('Error saving session', error);
+                        alert('Network error while saving.');
                     } finally {
                         this.isLoading = false;
                     }
@@ -218,5 +256,5 @@
             }
         }
     </script>
-</body>
-</html>
+
+<?php include '../views/layouts/footer.php'; ?>

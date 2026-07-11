@@ -18,8 +18,8 @@ class Router {
         // // Trim slashes so we don't get empty array elements
         // $segments = explode('/', trim($uri, '/')); 
         
-        $uri = str_replace('/pro/caosce_app', '', $uri);
-    
+        // $uri = str_replace('/pro/caosce_app', '', $uri);
+        $uri = str_replace(BASE_PATH, '', $uri);
     // 2. Strip query string variables
     $uri = explode('?', $uri)[0];
     

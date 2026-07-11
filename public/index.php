@@ -2,6 +2,10 @@
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+// define('BASE_PATH', rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/'));
+$scriptDir = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+$baseDir = rtrim(preg_replace('/\/public$/', '', $scriptDir), '/');
+define('BASE_PATH', $baseDir);
 ?>
 <?php
 require_once '../config.php';
@@ -26,6 +30,7 @@ $router->get('/admin/setup', 'views/admin/device_setup.php');
 //sessions
 $router->get('/admin/sessions', 'views/admin/sessions/index.php');
 $router->get('/admin/sessions/manage', 'views/admin/sessions/manage.php');
+$router->get('/admin/session-control', 'views/admin/sessions/session_control.php');
 
 // device
 $router->get('/admin/bind-device', 'views/admin/bind-device.php');
@@ -41,6 +46,21 @@ $router->get('/examiner/rubric', 'views/examiner/rubric.php');
 $router->post('/api/login', ['AuthController', 'handleLogin']);
 $router->post('/api/sync', ['SyncController', 'handleOfflineData']);
 $router->post('/api/exam/payload', ['ExamController', 'getPayload']);
+
+
+// The View Route
+
+
+// The API Route to fetch the deep data
+
+//admin
+//dashboard
+$router->get('/api/admin/stats', ['AdminController', 'getDashboardStats']);
+$router->get('/api/admin/session-details', ['AdminController', 'getSessionDetails']);
+//sessions
+$router->get('/api/admin/departments', ['AdminController', 'getDepartments']);
+$router->get('/api/admin/sessions', ['AdminController', 'getAllSessions']);
+$router->post('/api/admin/sessions/save', ['AdminController', 'saveSession']);
 
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

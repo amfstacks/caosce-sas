@@ -63,4 +63,20 @@ class Database {
     public function rowCount() {
         return $this->stmt->rowCount();
     }
+    // --- Transaction Wrapper Methods ---
+    
+    // Begin a transaction
+    public function beginTransaction() {
+        return $this->dbh->beginTransaction();
+    }
+
+    // Commit a transaction
+    public function commit() {
+        return $this->dbh->commit();
+    }
+
+    // Rollback a transaction
+    public function rollBack() {
+        return $this->dbh->rollBack();
+    }
 }

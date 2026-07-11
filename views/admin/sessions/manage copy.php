@@ -548,17 +548,6 @@
                     }
                 },
 
-
-                getStationStatuses(station) {
-                    let statuses = [];
-                    statuses.push({ label: 'Title Set', active: !!station.title });
-                    statuses.push({ label: 'Question Set', active: station.questions && station.questions.length > 0 });
-                    if (station.type === 'procedure') {
-                        statuses.push({ label: 'Station Assigned', active: !!station.examiner_id });
-                    }
-                    statuses.push({ label: 'Station Confirmed', active: station.confirmed });
-                    return statuses;
-                },
                 // --- Station API Methods ---
                 async processStationSave(isConfirmed) {
                     // Validation

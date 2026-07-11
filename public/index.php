@@ -61,6 +61,13 @@ $router->get('/api/admin/session-details', ['AdminController', 'getSessionDetail
 $router->get('/api/admin/departments', ['AdminController', 'getDepartments']);
 $router->get('/api/admin/sessions', ['AdminController', 'getAllSessions']);
 $router->post('/api/admin/sessions/save', ['AdminController', 'saveSession']);
+$router->post('/api/admin/workspace/student/upload', ['SessionWorkspaceController', 'uploadBulkRoster']);
+//sessions inner
+$router->get('/api/admin/workspace/data', ['SessionWorkspaceController', 'getWorkspaceData']);
+$router->post('/api/admin/workspace/student/save', ['SessionWorkspaceController', 'saveStudent']);
+$router->post('/api/admin/workspace/student/remove', ['SessionWorkspaceController', 'removeStudent']);
+$router->post('/api/admin/workspace/station/save', ['SessionWorkspaceController', 'saveStationConfig']);
+
 
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

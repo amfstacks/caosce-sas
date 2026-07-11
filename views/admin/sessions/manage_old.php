@@ -65,50 +65,26 @@
         <div x-show="activeTab === 'roster'" class="space-y-6">
             
             <!-- Ingestion Header -->
-            <!-- Ingestion Header -->
-            <div class="bg-white shadow sm:rounded-lg p-6 border border-slate-200">
-                <div class="sm:flex sm:items-start sm:justify-between mb-4 pb-4 border-b border-slate-100">
+            <div class="bg-white shadow sm:rounded-lg p-6">
+                <div class="sm:flex sm:items-center sm:justify-between mb-4">
                     <div>
-                        <h3 class="text-base font-bold leading-6 text-slate-900 flex items-center gap-2">
-                            Bulk CSV Roster Ingestion
-                        </h3>
-                        <p class="mt-1 text-sm text-slate-500">Upload candidate roster. <strong class="text-slate-700">Required headers:</strong> <code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-rose-600">matric_no</code>, <code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-rose-600">full_name</code>, <code class="bg-slate-100 px-1 py-0.5 rounded text-xs text-rose-600">password</code></p>
+                        <h3 class="text-base font-semibold leading-6 text-slate-900">Ingest Candidate Roster</h3>
+                        <p class="mt-1 text-sm text-slate-500">Upload a CSV (Matric, Name) or add students individually.</p>
                     </div>
                     <div class="mt-4 sm:mt-0 flex gap-3">
-                        <!-- Instantly generates a clean sample CSV for the user -->
-                        <a href="data:text/csv;charset=utf-8,matric_no%2Cfull_name%2Cpassword%0ANS/2026/001%2CJohn%20Doe%2C%0ANS/2026/002%2CJane%20Smith%2C1234" download="sample_roster.csv" class="rounded-md bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-200 transition-colors flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                            Download Sample
-                        </a>
-                        <button @click="openStudentModal()" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-blue-600 shadow-sm ring-1 ring-inset ring-blue-300 hover:bg-blue-50 transition-colors">
+                        <button @click="openStudentModal()" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
                             + Add Single Student
                         </button>
                     </div>
                 </div>
 
-                <form @submit.prevent="uploadBulkRoster" class="flex flex-col lg:flex-row gap-6 items-end">
-                    
-                    <div class="flex-grow w-full">
-                        <label class="block text-sm font-bold leading-6 text-slate-700">Select .CSV File</label>
-                        <input type="file" x-ref="rosterFile" accept=".csv" required class="mt-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg cursor-pointer">
+                <form @submit.prevent="uploadBulkRoster" class="flex items-end gap-4 border-t border-slate-100 pt-4">
+                    <div class="flex-grow">
+                        <label class="block text-sm font-medium leading-6 text-slate-900">Bulk Upload CSV</label>
+                        <input type="file" x-ref="rosterFile" accept=".csv" class="mt-2 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-md">
                     </div>
-
-                    <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 w-full lg:w-1/3">
-                        <label class="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">If Password Column is Empty:</label>
-                        <div class="space-y-2">
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" value="generate" x-model="passwordStrategy" class="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-600">
-                                <span class="ml-3 text-sm font-medium text-slate-700">Auto-generate 4-digit PIN</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" value="matric" x-model="passwordStrategy" class="h-4 w-4 border-slate-300 text-blue-600 focus:ring-blue-600">
-                                <span class="ml-3 text-sm font-medium text-slate-700">Use Matric Number</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="w-full lg:w-auto rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 transition-colors whitespace-nowrap" :disabled="isUploading">
-                        <span x-text="isUploading ? 'Validating & Uploading...' : 'Upload Bulk CSV'"></span>
+                    <button type="submit" class="rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500" :disabled="isUploading">
+                        <span x-text="isUploading ? 'Ingesting...' : 'Upload Bulk CSV'"></span>
                     </button>
                 </form>
             </div>
@@ -402,35 +378,37 @@
 
     <script>
         function workspaceController() {
-           return {
+            return {
                 activeTab: 'roster',
                 sessionId: new URLSearchParams(window.location.search).get('id'),
                 isUploading: false,
-                passwordStrategy: 'generate',
                 toast: { visible: false, message: '' },
                 
-                // Initialize as empty/loading states
-                sessionData: { title: 'Loading...', date: '...', department: '...' },
-                students: [],
-                availableExaminers: [],
-                stations: [],
-                
+                sessionData: { title: 'Maternal Health Practical OSCE', date: 'August 15, 2026', department: 'Midwifery (MW)' },
+
+                // --- Student Management State ---
+                students: [
+                    { id: 1, matric: 'NS/2026/001', name: 'Ayomide Balogun', password: 'pass_a8f2' },
+                    { id: 2, matric: 'NS/2026/002', name: 'Chioma Eze', password: 'pass_c9x1' }
+                ],
                 studentModal: { open: false, isEditing: false, data: { id: null, matric: '', name: '', password: '' } },
+
+                // --- Station Management State ---
+                availableExaminers: [
+                    { id: 'ex-1', name: 'Dr. Sarah Samson' },
+                    { id: 'ex-2', name: 'Dr. Iretioluwa Ibiloye' }
+                ],
+                stations: [
+                    { id: 'st-1', sequence: 1, type: 'procedure', title: 'IV Cannulation', examiner_id: 'ex-1', confirmed: true, questions: [{text: 'Provide patient consent script', score: 2, saved: false}] },
+                    { id: 'st-2', sequence: 2, type: 'cbt', title: '', score_per_question: 1, examiner_id: null, confirmed: false, questions: [] },
+                    { id: 'st-3', sequence: 3, type: 'procedure', title: '', examiner_id: null, confirmed: false, questions: [] },
+                    { id: 'st-4', sequence: 4, type: 'cbt', title: 'Anatomy Review', score_per_question: 2, examiner_id: null, confirmed: true, questions: [{text: 'Identify the humerus.', optA: 'Arm bone', optB: 'Leg bone', optC: 'Ribs', optD: 'Skull', correct_answer: 'A', saved: false}] },
+                    { id: 'st-5', sequence: 5, type: 'procedure', title: '', examiner_id: null, confirmed: false, questions: [] },
+                    { id: 'st-6', sequence: 6, type: 'cbt', title: '', score_per_question: 1, examiner_id: null, confirmed: false, questions: [] }
+                ],
                 stationModal: { open: false, station: null },
 
-                init() {
-                    if (!this.sessionId) {
-                        alert("Critical Error: No Session ID provided.");
-                        return;
-                    }
-                    this.fetchWorkspaceData();
-                },
-
-                getBaseApiUrl() {
-                    const tenantSlug = '<?php echo CURRENT_TENANT_SLUG ?? ""; ?>';
-                    let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
-                    return tenantSlug ? `${basePath}/${tenantSlug}` : basePath;
-                },
+                init() {},
 
                 showToast(msg) {
                     this.toast.message = msg;
@@ -438,68 +416,14 @@
                     setTimeout(() => { this.toast.visible = false; }, 3000);
                 },
 
-                // --- 1. CORE DATA FETCH ---
-                async fetchWorkspaceData() {
-                    try {
-                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/workspace/data?id=' + this.sessionId);
-                        let data = await response.json();
-                        
-                        if (data.success) {
-                            // Format the date nicely before injecting
-                            if(data.payload.sessionData.date) {
-                                data.payload.sessionData.date = new Date(data.payload.sessionData.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-                            }
-                            
-                            this.sessionData = data.payload.sessionData;
-                            this.students = data.payload.students;
-                            this.availableExaminers = data.payload.availableExaminers;
-                            this.stations = data.payload.stations;
-                        } else {
-                            alert(data.message);
-                        }
-                    } catch (error) {
-                        console.error('Failed to load workspace data', error);
-                        this.showToast('Network error loading data.');
-                    }
-                },
-
                 // --- Student Methods ---
-               async uploadBulkRoster() {
-                    let fileInput = this.$refs.rosterFile;
-                    
-                    if (!fileInput.files.length) {
-                        alert('Please select a CSV file first.');
-                        return;
-                    }
-
+                uploadBulkRoster() {
                     this.isUploading = true;
-                    
-                    // Native FormData handles multipart/form-data seamlessly
-                    let formData = new FormData();
-                    formData.append('roster_file', fileInput.files[0]);
-                    formData.append('session_id', this.sessionId);
-                    formData.append('password_strategy', this.passwordStrategy);
-
-                    try {
-                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/workspace/student/upload', {
-                            method: 'POST',
-                            body: formData // Note: We do NOT set 'Content-Type' headers for FormData. The browser sets the multipart boundary automatically.
-                        });
-                        
-                        let data = await response.json();
-                        
-                        if (data.success) {
-                            this.fetchWorkspaceData(); // Refresh the grid to show new students
-                            this.showToast('Bulk Roster ingested successfully.');
-                            fileInput.value = ''; // Clear the input
-                        } else {
-                            alert(data.message || 'CSV Upload failed.');
-                        }
-                    } catch (e) {
-                        alert('Network Error during upload.');
-                    } finally {
+                    setTimeout(() => {
                         this.isUploading = false;
-                    }
+                        this.showToast('Bulk Roster ingested successfully.');
+                        this.$refs.rosterFile.value = ''; 
+                    }, 1000);
                 },
                 openStudentModal(student = null) {
                     if(student) {
@@ -507,48 +431,30 @@
                         this.studentModal.data = { ...student };
                     } else {
                         this.studentModal.isEditing = false;
-                        this.studentModal.data = { id: null, matric: '', name: '', password:  Math.random().toString(36).substr(2, 4) };
+                        this.studentModal.data = { id: null, matric: '', name: '', password: 'pass_' + Math.random().toString(36).substr(2, 4) };
                     }
                     this.studentModal.open = true;
                 },
-              // --- Student API Methods ---
-                async saveStudent() {
-                    let payload = { ...this.studentModal.data, session_id: this.sessionId };
-                    try {
-                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/workspace/student/save', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        let data = await response.json();
-                        if (data.success) {
-                            this.fetchWorkspaceData(); // Refresh roster from DB
-                            this.showToast('Student saved successfully.');
-                            this.studentModal.open = false;
-                        } else {
-                            alert(data.message || 'Failed to save student.');
-                        }
-                    } catch (e) { alert('Network Error'); }
+                saveStudent() {
+                    if(this.studentModal.isEditing) {
+                        let idx = this.students.findIndex(s => s.id === this.studentModal.data.id);
+                        if(idx > -1) this.students[idx] = { ...this.studentModal.data };
+                        this.showToast('Student updated.');
+                    } else {
+                        this.studentModal.data.id = Date.now();
+                        this.students.unshift({ ...this.studentModal.data });
+                        this.showToast('New student added.');
+                    }
+                    this.studentModal.open = false;
                 },
-
-                async deleteStudent(id) {
+                deleteStudent(id) {
                     if(confirm('Remove this student from the session?')) {
-                        try {
-                            let response = await fetch(this.getBaseApiUrl() + '/api/admin/workspace/student/remove', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ student_id: id, session_id: this.sessionId })
-                            });
-                            let data = await response.json();
-                            if(data.success) {
-                                this.students = this.students.filter(s => s.id !== id);
-                                this.showToast('Student removed.');
-                            }
-                        } catch(e) { alert('Network Error'); }
+                        this.students = this.students.filter(s => s.id !== id);
+                        this.showToast('Student removed.');
                     }
                 },
 
-
+                // --- Station Status Logic ---
                 getStationStatuses(station) {
                     let statuses = [];
                     statuses.push({ label: 'Title Set', active: !!station.title });
@@ -558,41 +464,6 @@
                     }
                     statuses.push({ label: 'Station Confirmed', active: station.confirmed });
                     return statuses;
-                },
-                // --- Station API Methods ---
-                async processStationSave(isConfirmed) {
-                    // Validation
-                    if (isConfirmed) {
-                        if(!this.stationModal.station.title) { alert("Cannot confirm: Station Title is required."); return; }
-                        if(this.stationModal.station.type === 'procedure' && !this.stationModal.station.examiner_id) { alert("Cannot confirm: Procedure stations must have an assigned examiner."); return; }
-                        if(this.stationModal.station.type === 'cbt' && !this.stationModal.station.score_per_question) { alert("Cannot confirm: Please set the Score per Question (Marks)."); return; }
-                    }
-                    
-                    this.stationModal.station.confirmed = isConfirmed;
-
-                    try {
-                        let response = await fetch(this.getBaseApiUrl() + '/api/admin/workspace/station/save', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ station: this.stationModal.station })
-                        });
-                        let data = await response.json();
-                        if (data.success) {
-                            this.fetchWorkspaceData(); // Refresh the grid
-                            this.showToast(isConfirmed ? 'Station Configuration Confirmed!' : 'Station draft saved.');
-                            this.closeStationWorkspace();
-                        } else {
-                            alert(data.message || 'Failed to save station configuration.');
-                        }
-                    } catch(e) { alert('Network Error'); }
-                },
-
-                saveStationDraft() {
-                    this.processStationSave(false);
-                },
-
-                confirmStation() {
-                    this.processStationSave(true);
                 },
 
                 // --- Station Modal Methods ---

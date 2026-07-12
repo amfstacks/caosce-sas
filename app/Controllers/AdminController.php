@@ -157,7 +157,7 @@ class AdminController {
         return json_encode(['success' => true, 'payload' => $this->db->resultSet()]);
     }
 
-    public function saveSession($inputData) {
+    public function saveSession_old($inputData) {
         $schoolId = $this->getSchoolId();
         if (!$schoolId) return json_encode(['success' => false, 'message' => 'Auth Error']);
 
@@ -189,6 +189,74 @@ class AdminController {
             return json_encode(['success' => true]);
         }
         return json_encode(['success' => false, 'message' => 'Database error']);
+    }
+    public function saveSession($inputData) {
+        $schoolId = $this->getSchoolId();
+        if (!$schoolId) return json_encode(['success' => false, 'message' => 'Auth Error']);
+
+        $id = !empty($inputData['id']) ? $inputData['id'] : null;
+        $title = trim($inputData['title']);
+        $date = $inputData['scheduled_date'];
+        $deptId = $inputData['department_id'];
+        
+        // Catch the status (default to draft if not provided)
+        $status = !empty($inputData['status']) ? $inputData['status'] : 'draft';
+
+        $isNewSession = false;
+        if (!$id) {
+            $isNewSession = true;
+            $id = UuidHelper::v4();
+        }
+
+        try {
+            // Start transaction to ensure Session + 6 Stations are created together safely
+            $this->db->beginTransaction();
+
+            if (!$isNewSession) {
+                // EDIT EXISTING SESSION
+                $this->db->query("UPDATE exam_sessions SET title = :title, scheduled_date = :date, department_id = :dept, status = :status WHERE id = :id AND school_id = :school_id");
+            } else {
+                // CREATE NEW SESSION
+                $this->db->query("INSERT INTO exam_sessions (id, school_id, department_id, title, scheduled_date, status) VALUES (:id, :school_id, :dept, :title, :date, :status)");
+            }
+            
+            $this->db->bind(':id', $id);
+            $this->db->bind(':title', $title);
+            $this->db->bind(':date', $date);
+            $this->db->bind(':dept', $deptId);
+            $this->db->bind(':status', $status);
+            $this->db->bind(':school_id', $schoolId);
+            $this->db->execute();
+
+            // ==========================================
+            // AUTO-PROVISION 6 STATIONS FOR NEW SESSIONS
+            // ==========================================
+            if ($isNewSession) {
+                for ($i = 1; $i <= 6; $i++) {
+                    $stationId = UuidHelper::v4();
+                    
+                    // Let's alternate them to match standard OSCE ring formats: 
+                    // 1=Procedure, 2=CBT, 3=Procedure, 4=CBT...
+                    $stationType = ($i % 2 == 0) ? 'cbt' : 'procedure'; 
+                    
+                    $this->db->query("INSERT INTO stations (id, exam_session_id, station_type, title, time_limit_minutes, order_sequence, is_confirmed) VALUES (:st_id, :sess_id, :type, :st_title, :time_limit, :seq, 0)");
+                    $this->db->bind(':st_id', $stationId);
+                    $this->db->bind(':sess_id', $id);
+                    $this->db->bind(':type', $stationType);
+                    $this->db->bind(':st_title', ''); // Empty title to start
+                    $this->db->bind(':time_limit', 10); // Default 10 mins
+                    $this->db->bind(':seq', $i);
+                    $this->db->execute();
+                }
+            }
+
+            $this->db->commit();
+            return json_encode(['success' => true]);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        }
     }
 }
 ?>

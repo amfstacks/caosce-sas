@@ -67,6 +67,9 @@ $router->get('/api/admin/workspace/data', ['SessionWorkspaceController', 'getWor
 $router->post('/api/admin/workspace/student/save', ['SessionWorkspaceController', 'saveStudent']);
 $router->post('/api/admin/workspace/student/remove', ['SessionWorkspaceController', 'removeStudent']);
 $router->post('/api/admin/workspace/station/save', ['SessionWorkspaceController', 'saveStationConfig']);
+$router->post('/api/admin/workspace/question/save', ['SessionWorkspaceController', 'saveSingleQuestion']);
+$router->post('/api/admin/workspace/question/delete', ['SessionWorkspaceController', 'deleteSingleQuestion']);
+$router->post('/api/admin/workspace/question/upload', ['SessionWorkspaceController', 'uploadBulkQuestions']);
 
 
 // Dispatch the current request

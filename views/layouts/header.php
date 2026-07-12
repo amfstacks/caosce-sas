@@ -12,8 +12,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Core Frontend Libraries -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script> -->
+    <script defer src="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/assets/js/alpine.min.js"></script>
+    <script src="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/assets/js/tailwind.js"></script>
     
     <!-- Configure Tailwind to use the premium font -->
     <script>

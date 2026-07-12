@@ -183,55 +183,216 @@ class SessionWorkspaceController {
     }
 
     // --- 3. Save Station Configuration & Question Bank ---
+    // public function saveStationConfig_old($inputData) {
+    //     $station = $inputData['station'] ?? null;
+    //     if (!$station || empty($station['id'])) {
+    //         return json_encode(['success' => false, 'message' => 'Invalid station data.']);
+    //     }
+
+    //     // 1. Update Core Station Parameters
+    //     $this->db->query("UPDATE stations SET title = :title, examiner_id = :examiner_id, score_per_question = :score, is_confirmed = :confirmed WHERE id = :id");
+    //     $this->db->bind(':title', !empty($station['title']) ? trim($station['title']) : null);
+    //     $this->db->bind(':examiner_id', !empty($station['examiner_id']) ? $station['examiner_id'] : null);
+    //     $this->db->bind(':score', !empty($station['score_per_question']) ? $station['score_per_question'] : null);
+    //     $this->db->bind(':confirmed', $station['confirmed'] ? 1 : 0);
+    //     $this->db->bind(':id', $station['id']);
+    //     $this->db->execute();
+
+    //     // 2. Wipe existing questions for a clean slate
+    //     $this->db->query("DELETE FROM station_questions WHERE station_id = :station_id");
+    //     $this->db->bind(':station_id', $station['id']);
+    //     $this->db->execute();
+
+    //     // 3. Insert the new questions array
+    //     if (!empty($station['questions']) && is_array($station['questions'])) {
+    //         $seq = 1;
+    //         foreach ($station['questions'] as $q) {
+    //             // Skip empty questions
+    //             if (empty(trim($q['text']))) continue;
+
+    //             $qId = UuidHelper::v4();
+    //             $this->db->query("
+    //                 INSERT INTO station_questions (id, station_id, question_text, opt_a, opt_b, opt_c, opt_d, correct_answer, score, order_seq) 
+    //                 VALUES (:id, :station_id, :text, :optA, :optB, :optC, :optD, :answer, :score, :seq)
+    //             ");
+    //             $this->db->bind(':id', $qId);
+    //             $this->db->bind(':station_id', $station['id']);
+    //             $this->db->bind(':text', trim($q['text']));
+    //             $this->db->bind(':optA', !empty($q['optA']) ? trim($q['optA']) : null);
+    //             $this->db->bind(':optB', !empty($q['optB']) ? trim($q['optB']) : null);
+    //             $this->db->bind(':optC', !empty($q['optC']) ? trim($q['optC']) : null);
+    //             $this->db->bind(':optD', !empty($q['optD']) ? trim($q['optD']) : null);
+    //             $this->db->bind(':answer', !empty($q['correct_answer']) ? $q['correct_answer'] : null);
+    //             $this->db->bind(':score', !empty($q['score']) ? $q['score'] : 1.00);
+    //             $this->db->bind(':seq', $seq);
+    //             $this->db->execute();
+                
+    //             $seq++;
+    //         }
+    //     }
+
+    //     return json_encode(['success' => true]);
+    // }
+    // // --- 3. Save Station Configuration & Question Bank ---
+    // public function saveStationConfig($inputData) {
+    //     $station = $inputData['station'] ?? null;
+    //     if (!$station || empty($station['id'])) {
+    //         return json_encode(['success' => false, 'message' => 'Invalid station data.']);
+    //     }
+
+    //     try {
+    //         $this->db->beginTransaction();
+
+    //         // 1. Update Core Station Parameters
+    //         $this->db->query("UPDATE stations SET title = :title, examiner_id = :examiner_id, score_per_question = :score, is_confirmed = :confirmed WHERE id = :id");
+    //         $this->db->bind(':title', !empty($station['title']) ? trim($station['title']) : '');
+    //         $this->db->bind(':examiner_id', !empty($station['examiner_id']) ? $station['examiner_id'] : null);
+    //         $this->db->bind(':score', !empty($station['score_per_question']) ? $station['score_per_question'] : null);
+    //         $this->db->bind(':confirmed', !empty($station['confirmed']) ? 1 : 0);
+    //         $this->db->bind(':id', $station['id']);
+    //         $this->db->execute();
+
+    //         // 2. Wipe existing questions for a clean slate
+    //         $this->db->query("DELETE FROM station_questions WHERE station_id = :station_id");
+    //         $this->db->bind(':station_id', $station['id']);
+    //         $this->db->execute();
+
+    //         // 3. Insert the new questions array
+    //         if (!empty($station['questions']) && is_array($station['questions'])) {
+    //             $seq = 1;
+    //             foreach ($station['questions'] as $q) {
+    //                 // Safely extract text (prevents silent PHP undefined key errors)
+    //                 $text = isset($q['text']) ? trim($q['text']) : '';
+    //                 if (empty($text)) continue;
+
+    //                 $qId = UuidHelper::v4();
+    //                 $this->db->query("
+    //                     INSERT INTO station_questions (id, station_id, question_text, opt_a, opt_b, opt_c, opt_d, correct_answer, score, order_seq) 
+    //                     VALUES (:id, :station_id, :text, :optA, :optB, :optC, :optD, :answer, :score, :seq)
+    //                 ");
+    //                 $this->db->bind(':id', $qId);
+    //                 $this->db->bind(':station_id', $station['id']);
+    //                 $this->db->bind(':text', $text);
+    //                 $this->db->bind(':optA', !empty($q['optA']) ? trim($q['optA']) : null);
+    //                 $this->db->bind(':optB', !empty($q['optB']) ? trim($q['optB']) : null);
+    //                 $this->db->bind(':optC', !empty($q['optC']) ? trim($q['optC']) : null);
+    //                 $this->db->bind(':optD', !empty($q['optD']) ? trim($q['optD']) : null);
+    //                 $this->db->bind(':answer', !empty($q['correct_answer']) ? $q['correct_answer'] : null);
+    //                 $this->db->bind(':score', !empty($q['score']) ? $q['score'] : 1.00);
+    //                 $this->db->bind(':seq', $seq);
+    //                 $this->db->execute();
+                    
+    //                 $seq++;
+    //             }
+    //         }
+
+    //         $this->db->commit();
+    //         return json_encode(['success' => true]);
+
+    //     } catch (Exception $e) {
+    //         $this->db->rollBack();
+    //         // This will throw the exact error to the UI so we can see what's wrong!
+    //         return json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]); 
+    //     }
+    // }
+
+    // --- 3. Save Station Configuration (CORE SETTINGS ONLY) ---
     public function saveStationConfig($inputData) {
         $station = $inputData['station'] ?? null;
         if (!$station || empty($station['id'])) {
             return json_encode(['success' => false, 'message' => 'Invalid station data.']);
         }
 
-        // 1. Update Core Station Parameters
-        $this->db->query("UPDATE stations SET title = :title, examiner_id = :examiner_id, score_per_question = :score, is_confirmed = :confirmed WHERE id = :id");
-        $this->db->bind(':title', !empty($station['title']) ? trim($station['title']) : null);
-        $this->db->bind(':examiner_id', !empty($station['examiner_id']) ? $station['examiner_id'] : null);
-        $this->db->bind(':score', !empty($station['score_per_question']) ? $station['score_per_question'] : null);
-        $this->db->bind(':confirmed', $station['confirmed'] ? 1 : 0);
-        $this->db->bind(':id', $station['id']);
-        $this->db->execute();
+        try {
+            // We ONLY update the core parameters now. We do NOT touch the questions table here anymore.
+            $this->db->query("UPDATE stations SET title = :title, examiner_id = :examiner_id, score_per_question = :score, is_confirmed = :confirmed WHERE id = :id");
+            $this->db->bind(':title', !empty($station['title']) ? trim($station['title']) : '');
+            $this->db->bind(':examiner_id', !empty($station['examiner_id']) ? $station['examiner_id'] : null);
+            $this->db->bind(':score', !empty($station['score_per_question']) ? $station['score_per_question'] : null);
+            $this->db->bind(':confirmed', !empty($station['confirmed']) ? 1 : 0);
+            $this->db->bind(':id', $station['id']);
+            $this->db->execute();
 
-        // 2. Wipe existing questions for a clean slate
-        $this->db->query("DELETE FROM station_questions WHERE station_id = :station_id");
-        $this->db->bind(':station_id', $station['id']);
-        $this->db->execute();
+            return json_encode(['success' => true]);
+        } catch (Exception $e) {
+            return json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]); 
+        }
+    }
 
-        // 3. Insert the new questions array
-        if (!empty($station['questions']) && is_array($station['questions'])) {
-            $seq = 1;
-            foreach ($station['questions'] as $q) {
-                // Skip empty questions
-                if (empty(trim($q['text']))) continue;
+    // --- 4. INSTANT SAVE: Add or Edit a Single Question ---
+    public function saveSingleQuestion($inputData) {
+        if (empty($inputData['station_id']) || empty($inputData['text'])) {
+            return json_encode(['success' => false, 'message' => 'Station ID and Question Text are required.']);
+        }
 
-                $qId = UuidHelper::v4();
+        $id = !empty($inputData['id']) ? $inputData['id'] : null;
+        $stationId = $inputData['station_id'];
+        $text = trim($inputData['text']);
+        $optA = !empty($inputData['optA']) ? trim($inputData['optA']) : null;
+        $optB = !empty($inputData['optB']) ? trim($inputData['optB']) : null;
+        $optC = !empty($inputData['optC']) ? trim($inputData['optC']) : null;
+        $optD = !empty($inputData['optD']) ? trim($inputData['optD']) : null;
+        $answer = !empty($inputData['correct_answer']) ? trim($inputData['correct_answer']) : null;
+        $score = !empty($inputData['score']) ? $inputData['score'] : 1.00;
+
+        try {
+            if ($id) {
+                // EDIT EXISTING QUESTION
+                $this->db->query("
+                    UPDATE station_questions 
+                    SET question_text = :text, opt_a = :optA, opt_b = :optB, opt_c = :optC, opt_d = :optD, correct_answer = :answer, score = :score 
+                    WHERE id = :id
+                ");
+                $this->db->bind(':id', $id);
+            } else {
+                // ADD NEW QUESTION
+                $id = UuidHelper::v4();
+                
+                // Get the next sequence number for this station
+                $this->db->query("SELECT MAX(order_seq) as max_seq FROM station_questions WHERE station_id = :station_id");
+                $this->db->bind(':station_id', $stationId);
+                $row = $this->db->single();
+                $nextSeq = ($row && $row['max_seq']) ? $row['max_seq'] + 1 : 1;
+
                 $this->db->query("
                     INSERT INTO station_questions (id, station_id, question_text, opt_a, opt_b, opt_c, opt_d, correct_answer, score, order_seq) 
                     VALUES (:id, :station_id, :text, :optA, :optB, :optC, :optD, :answer, :score, :seq)
                 ");
-                $this->db->bind(':id', $qId);
-                $this->db->bind(':station_id', $station['id']);
-                $this->db->bind(':text', trim($q['text']));
-                $this->db->bind(':optA', !empty($q['optA']) ? trim($q['optA']) : null);
-                $this->db->bind(':optB', !empty($q['optB']) ? trim($q['optB']) : null);
-                $this->db->bind(':optC', !empty($q['optC']) ? trim($q['optC']) : null);
-                $this->db->bind(':optD', !empty($q['optD']) ? trim($q['optD']) : null);
-                $this->db->bind(':answer', !empty($q['correct_answer']) ? $q['correct_answer'] : null);
-                $this->db->bind(':score', !empty($q['score']) ? $q['score'] : 1.00);
-                $this->db->bind(':seq', $seq);
-                $this->db->execute();
-                
-                $seq++;
+                $this->db->bind(':id', $id);
+                $this->db->bind(':station_id', $stationId);
+                $this->db->bind(':seq', $nextSeq);
             }
+            
+            $this->db->bind(':text', $text);
+            $this->db->bind(':optA', $optA);
+            $this->db->bind(':optB', $optB);
+            $this->db->bind(':optC', $optC);
+            $this->db->bind(':optD', $optD);
+            $this->db->bind(':answer', $answer);
+            $this->db->bind(':score', $score);
+            $this->db->execute();
+
+            return json_encode(['success' => true, 'question_id' => $id]);
+        } catch (Exception $e) {
+            return json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);
+        }
+    }
+
+    // --- 5. INSTANT DELETE: Remove a Single Question ---
+    public function deleteSingleQuestion($inputData) {
+        if (empty($inputData['id'])) {
+            return json_encode(['success' => false, 'message' => 'Question ID required.']);
         }
 
-        return json_encode(['success' => true]);
+        try {
+            $this->db->query("DELETE FROM station_questions WHERE id = :id");
+            $this->db->bind(':id', $inputData['id']);
+            $this->db->execute();
+
+            return json_encode(['success' => true]);
+        } catch (Exception $e) {
+            return json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);
+        }
     }
 
     // --- 4. Bulk Upload CSV Roster ---
@@ -357,6 +518,128 @@ class SessionWorkspaceController {
             $this->db->rollBack();
             fclose($handle);
             return json_encode(['success' => false, 'message' => 'Database error during CSV import.']);
+        }
+    }
+
+    // --- 6. Bulk Upload CSV Question Bank ---
+    public function uploadBulkQuestions($inputData = null) {
+        $stationId = $_POST['station_id'] ?? null;
+        
+        if (!$stationId || !isset($_FILES['question_file'])) {
+            return json_encode(['success' => false, 'message' => 'Missing file or station ID.']);
+        }
+
+        $file = $_FILES['question_file'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['success' => false, 'message' => 'File upload error.']);
+        }
+
+        // Fetch station context to determine type and CBT score configuration
+        $this->db->query("SELECT station_type, score_per_question FROM stations WHERE id = :id");
+        $this->db->bind(':id', $stationId);
+        $station = $this->db->single();
+
+        if (!$station) {
+            return json_encode(['success' => false, 'message' => 'Invalid station context.']);
+        }
+
+        $isCbt = ($station['station_type'] === 'cbt');
+
+        // PRE-FLIGHT CHECK: Ensure CBT has a score set before allowing upload
+        if ($isCbt && empty($station['score_per_question'])) {
+            return json_encode(['success' => false, 'message' => 'Upload Aborted: Please set and save the "Score per Question (Marks)" in the Core Parameters before uploading CBT questions.']);
+        }
+
+        $handle = fopen($file['tmp_name'], 'r');
+        $header = fgetcsv($handle); // Skip header
+
+        if (!$header) {
+            fclose($handle);
+            return json_encode(['success' => false, 'message' => 'The CSV file is empty.']);
+        }
+
+        // Map column indices dynamically to be foolproof
+        $headerMap = [];
+        foreach ($header as $index => $col) {
+            $headerMap[strtolower(trim($col))] = $index;
+        }
+
+        // STRICT HEADER VALIDATION BASED ON STATION TYPE
+        if ($isCbt) {
+            $requiredHeaders = ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer'];
+            foreach ($requiredHeaders as $req) {
+                if (!isset($headerMap[$req])) {
+                    fclose($handle);
+                    return json_encode(['success' => false, 'message' => "Upload Aborted: CBT CSV must contain the header '$req'."]);
+                }
+            }
+        } else {
+            $requiredHeaders = ['question', 'score'];
+            foreach ($requiredHeaders as $req) {
+                if (!isset($headerMap[$req])) {
+                    fclose($handle);
+                    return json_encode(['success' => false, 'message' => "Upload Aborted: Procedure CSV must contain the header '$req'."]);
+                }
+            }
+        }
+
+        $this->db->beginTransaction(); 
+
+        try {
+            // Get current max sequence to append new questions at the end
+            $this->db->query("SELECT MAX(order_seq) as max_seq FROM station_questions WHERE station_id = :station_id");
+            $this->db->bind(':station_id', $stationId);
+            $row = $this->db->single();
+            $seq = ($row && $row['max_seq']) ? $row['max_seq'] + 1 : 1;
+
+            while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $text = trim($row[$headerMap['question']] ?? '');
+                if (empty($text)) continue;
+
+                if ($isCbt) {
+                    $optA = trim($row[$headerMap['option_a']] ?? '');
+                    $optB = trim($row[$headerMap['option_b']] ?? '');
+                    $optC = trim($row[$headerMap['option_c']] ?? '');
+                    $optD = trim($row[$headerMap['option_d']] ?? '');
+                    $answer = trim($row[$headerMap['correct_answer']] ?? '');
+                    // CBT inherits the score from the core parameters
+                    $score = $station['score_per_question']; 
+                } else {
+                    $optA = $optB = $optC = $optD = $answer = null;
+                    // Procedure extracts the score directly from the CSV row
+                    $csvScore = trim($row[$headerMap['score']] ?? '');
+                    $score = is_numeric($csvScore) ? $csvScore : 1.00;
+                }
+
+                $qId = UuidHelper::v4();
+                $this->db->query("
+                    INSERT INTO station_questions (id, station_id, question_text, opt_a, opt_b, opt_c, opt_d, correct_answer, score, order_seq) 
+                    VALUES (:id, :station_id, :text, :optA, :optB, :optC, :optD, :answer, :score, :seq)
+                ");
+                $this->db->bind(':id', $qId);
+                $this->db->bind(':station_id', $stationId);
+                $this->db->bind(':text', $text);
+                $this->db->bind(':optA', !empty($optA) ? $optA : null);
+                $this->db->bind(':optB', !empty($optB) ? $optB : null);
+                $this->db->bind(':optC', !empty($optC) ? $optC : null);
+                $this->db->bind(':optD', !empty($optD) ? $optD : null);
+                // Force correct answer to uppercase (A, B, C, D) just in case
+                $this->db->bind(':answer', !empty($answer) ? strtoupper($answer) : null); 
+                $this->db->bind(':score', $score);
+                $this->db->bind(':seq', $seq);
+                $this->db->execute();
+                
+                $seq++;
+            }
+            
+            $this->db->commit();
+            fclose($handle);
+            return json_encode(['success' => true]);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            fclose($handle);
+            return json_encode(['success' => false, 'message' => 'DB error during CSV import.']);
         }
     }
 }

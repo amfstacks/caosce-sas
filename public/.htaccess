@@ -1,10 +1,13 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
     
-    # If the file doesn't exist...
+    # 1. NEW RULE: If the request is for the assets directory, STOP. Do not send to index.php!
+    RewriteRule ^assets/ - [L]
+    
+    # 2. If the file doesn't exist...
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     
-    # ...send it to index.php
+    # 3. ...send it to index.php
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>

@@ -71,6 +71,21 @@ $router->post('/api/admin/workspace/question/save', ['SessionWorkspaceController
 $router->post('/api/admin/workspace/question/delete', ['SessionWorkspaceController', 'deleteSingleQuestion']);
 $router->post('/api/admin/workspace/question/upload', ['SessionWorkspaceController', 'uploadBulkQuestions']);
 
+//bindings
+// Hardware Provisioning (Binding PINs) Routes
+$router->get('/api/admin/hardware/data', ['BindingController', 'getBindingData']);
+$router->post('/api/admin/hardware/generate', ['BindingController', 'generatePin']);
+$router->post('/api/admin/hardware/toggle', ['BindingController', 'togglePin']);
+$router->post('/api/admin/hardware/delete', ['BindingController', 'deletePin']);
+
+// Gatekeeper PIN Verification Route
+$router->post('/api/setup/verify-pin', ['BindingController', 'verifyPin']);
+$router->get('/api/setup/download-payload', ['BindingController', 'downloadOfflinePayload']);
+
+// The Device Binding screen route
+$router->get('/admin/bind-device', 'views/admin/bind-device.php');
+
+
 
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

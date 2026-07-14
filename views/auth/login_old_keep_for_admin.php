@@ -1,5 +1,5 @@
 <?php 
-$pageTitle = "Secure Exam Login"; 
+$pageTitle = "Secure Login"; 
 include '../views/layouts/header.php'; 
 ?>
 
@@ -16,7 +16,7 @@ include '../views/layouts/header.php';
 
     <div x-show="isInitializing" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center transition-opacity duration-300">
         <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p class="text-white font-medium animate-pulse">Initializing Exam Environment...</p>
+        <p class="text-white font-medium animate-pulse">Initializing Environment...</p>
     </div>
 
     <div class="hidden md:flex md:w-1/2 lg:w-3/5 relative bg-slate-900 overflow-hidden">
@@ -47,7 +47,7 @@ include '../views/layouts/header.php';
                         <span class="text-xs text-slate-400 font-bold"><?php echo APP_NAME; ?></span>
                     </template>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-900">Secure Exam Login</h2>
+                <h2 class="text-2xl font-bold text-slate-900">Secure Sign In</h2>
             </div>
 
             <!-- Device Provisioning Status Dashboard -->
@@ -92,25 +92,25 @@ include '../views/layouts/header.php';
                 <p class="text-sm font-medium text-red-800" x-text="errorMessage"></p>
             </div>
 
-            <!-- Offline Login Form -->
+            <!-- Login Form -->
             <form @submit.prevent="submitLogin" class="space-y-5">
                 <div>
-                    <label for="username" class="block text-sm font-semibold leading-6 text-slate-900">Matric Number / Examiner ID</label>
+                    <label for="username" class="block text-sm font-semibold leading-6 text-slate-900">Matric Number / Admin ID</label>
                     <div class="mt-1">
                         <input type="text" id="username" x-model="formData.username" required autocomplete="username" class="block w-full rounded-lg border-slate-300 py-3 px-4 text-slate-900 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm border bg-slate-50 transition-colors">
                     </div>
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-semibold leading-6 text-slate-900">Secure PIN / Password</label>
+                    <label for="password" class="block text-sm font-semibold leading-6 text-slate-900">Secure Password</label>
                     <div class="mt-1">
                         <input type="password" id="password" x-model="formData.password" required autocomplete="current-password" class="block w-full rounded-lg border-slate-300 py-3 px-4 text-slate-900 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm border bg-slate-50 transition-colors">
                     </div>
                 </div>
 
-                <button type="submit" :disabled="isLoading" class="flex w-full justify-center items-center rounded-lg bg-blue-600 px-3 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 transform active:scale-[0.98]">
+                <button type="submit" :disabled="isLoading || (!deviceState.isBound && formData.username.toLowerCase().indexOf('admin') === -1)" class="flex w-full justify-center items-center rounded-lg bg-blue-600 px-3 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 transform active:scale-[0.98]">
                     <svg x-show="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span x-text="isLoading ? 'Authenticating...' : 'Sign In to Exam'"></span>
+                    <span x-text="isLoading ? 'Authenticating...' : 'Sign In to Workspace'"></span>
                 </button>
             </form>
 
@@ -155,11 +155,13 @@ include '../views/layouts/header.php';
                         this.isInitializing = false;
                         return;
                     }
+                    // Run async tasks concurrently to reduce loading time
                     await Promise.all([
                         this.loadTenantData(),
                         this.checkDeviceBinding()
                     ]);
                     
+                    // Hide loader only when both db operations finish
                     this.isInitializing = false;
                 },
 
@@ -171,6 +173,7 @@ include '../views/layouts/header.php';
 
                 async checkDeviceBinding() {
                     let sig = localStorage.getItem('caosce_device_signature');
+                    // Pulling the payload from IndexedDB via localforage
                     let payload = await localforage.getItem('caosce_offline_data');
 
                     if (sig && payload) {
@@ -219,78 +222,74 @@ include '../views/layouts/header.php';
                     this.isLoading = true;
                     this.errorMessage = '';
 
-                    // Security Gate 1: Check if bound
-                    if (!this.deviceState.isBound) {
-                        this.errorMessage = 'Access Denied: This device has not been bound by an Administrator.';
-                        this.isLoading = false;
+                    // Validate locally if we have the heavy payload
+                    if (this.deviceState.isBound && this.deviceState.isPayloadReady && navigator.onLine === false) {
+                        await this.performOfflineLogin();
                         return;
                     }
 
-                    // Security Gate 2: Check if payload is downloaded
-                    if (!this.deviceState.isPayloadReady) {
-                        this.errorMessage = 'Data Missing: Please contact the admin to sync this device.';
-                        this.isLoading = false;
-                        return;
-                    }
+                    let deviceSig = localStorage.getItem('caosce_device_signature');
+                    let apiUrl = this.getBaseApiUrl() + '/api/login';
 
-                    await this.performOfflineLogin();
+                    try {
+                        let response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({
+                                username: this.formData.username,
+                                password: this.formData.password,
+                                device_signature: deviceSig
+                            })
+                        });
+
+                        let data = await response.json();
+
+                        if (data.success) {
+                            window.location.href = this.getBaseApiUrl() + data.redirect_url;
+                        } else {
+                            this.errorMessage = data.message || 'Login failed. Please verify your credentials.';
+                        }
+                    } catch (error) {
+                        if (this.deviceState.isPayloadReady) {
+                            await this.performOfflineLogin();
+                        } else {
+                            this.errorMessage = 'Network error. Device is not provisioned for offline use.';
+                            this.isLoading = false;
+                        }
+                    }
                 },
 
                 async performOfflineLogin() {
                     try {
+                        // Await data from IndexedDB
                         let payload = await localforage.getItem('caosce_offline_data');
                         
+                        if (!payload || !payload.students) {
+                            throw new Error("Missing offline roster.");
+                        }
+
                         let inputUser = this.formData.username.trim().toLowerCase();
                         let inputPass = this.formData.password.trim();
-                        let stationType = payload.station_settings.station_type;
-                        let stationId = payload.station_id;
 
-                        // 1. EXAMINER ROUTING (Procedure Stations Only)
-                        if (stationType === 'procedure' && payload.examiner) {
-                            if (payload.examiner.username.toLowerCase() === inputUser && payload.examiner.raw_password === inputPass) {
-                                sessionStorage.setItem('caosce_offline_auth', JSON.stringify({
-                                    role: 'examiner',
-                                    id: payload.examiner.id,
-                                    name: payload.examiner.full_name,
-                                    username: payload.examiner.username,
-                                    login_time: Date.now()
-                                }));
-                                window.location.href = this.getBaseApiUrl() + `/examiner/rubric?station_id=${stationId}`;
-                                return;
-                            }
+                        let student = payload.students.find(s => 
+                            s.matric_number.toLowerCase() === inputUser && s.raw_password === inputPass
+                        );
+
+                        if (student) {
+                            sessionStorage.setItem('caosce_offline_auth', JSON.stringify({
+                                student_id: student.id,
+                                matric: student.matric_number,
+                                name: student.full_name,
+                                login_time: Date.now()
+                            }));
+                            
+                            window.location.href = this.getBaseApiUrl() + '/exam/engine';
+                        } else {
+                            this.errorMessage = 'Offline Authentication Failed: Invalid matric number or PIN.';
+                            this.isLoading = false;
                         }
-
-                        // 2. STUDENT ROUTING
-                        if (payload.students) {
-                            let student = payload.students.find(s => 
-                                s.matric_number.toLowerCase() === inputUser && s.raw_password === inputPass
-                            );
-
-                            if (student) {
-                                sessionStorage.setItem('caosce_offline_auth', JSON.stringify({
-                                    role: 'student',
-                                    id: student.id,
-                                    matric: student.matric_number,
-                                    name: student.full_name,
-                                    login_time: Date.now()
-                                }));
-                                
-                                if (stationType === 'cbt') {
-                                    window.location.href = this.getBaseApiUrl() + `/student/cbt?station_id=${stationId}`;
-                                } else {
-                                    window.location.href = this.getBaseApiUrl() + `/student/procedure_standby?station_id=${stationId}`;
-                                }
-                                return;
-                            }
-                        }
-
-                        // 3. NO MATCH FOUND
-                        this.errorMessage = 'Invalid Matric Number/Examiner ID or Password.';
-
                     } catch(e) {
-                        console.error(e);
                         this.errorMessage = 'Critical Error reading offline database.';
-                    } finally {
                         this.isLoading = false;
                     }
                 }

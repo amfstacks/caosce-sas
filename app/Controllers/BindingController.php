@@ -150,7 +150,7 @@ class BindingController {
     }
 
     // 6. Download Full Offline Payload
-    public function downloadOfflinePayload() {
+    public function downloadOfflinePayload_old() {
         $sessionId = $_GET['session_id'] ?? null;
         $stationId = $_GET['station_id'] ?? null;
 
@@ -186,6 +186,63 @@ class BindingController {
                     'station_settings' => $stationSettings,
                     'questions' => $questions,
                     'students' => $students
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            return json_encode(['success' => false, 'message' => 'Database error compiling payload.']);
+        }
+    }
+
+    // 6. Download Full Offline Payload
+    public function downloadOfflinePayload() {
+        $sessionId = $_GET['session_id'] ?? null;
+        $stationId = $_GET['station_id'] ?? null;
+
+        if (!$sessionId || !$stationId) {
+            return json_encode(['success' => false, 'message' => 'Missing session or station context.']);
+        }
+
+        try {
+            // A. Fetch Station Settings
+            $this->db->query("SELECT * FROM stations WHERE id = :station_id");
+            $this->db->bind(':station_id', $stationId);
+            $stationSettings = $this->db->single();
+
+            if (!$stationSettings) {
+                return json_encode(['success' => false, 'message' => 'Station not found.']);
+            }
+
+            // B. Fetch All Questions for this Station
+            $this->db->query("SELECT id, question_text, opt_a, opt_b, opt_c, opt_d, correct_answer, score, order_seq FROM station_questions WHERE station_id = :station_id ORDER BY order_seq ASC");
+            $this->db->bind(':station_id', $stationId);
+            $questions = $this->db->resultSet();
+
+            // C. Fetch Roster (Students mapped to this session)
+            $this->db->query("
+                SELECT s.id, s.matric_number, s.full_name, s.raw_password
+                FROM exam_session_student ess
+                JOIN students s ON ess.student_id = s.id
+                WHERE ess.exam_session_id = :session_id
+            ");
+            $this->db->bind(':session_id', $sessionId);
+            $students = $this->db->resultSet();
+
+            // D. Fetch Examiner Credentials IF it is a procedure station
+            $examinerDetails = null;
+            if ($stationSettings['station_type'] === 'procedure' && !empty($stationSettings['examiner_id'])) {
+                $this->db->query("SELECT id, username, full_name, raw_password FROM users WHERE id = :examiner_id LIMIT 1");
+                $this->db->bind(':examiner_id', $stationSettings['examiner_id']);
+                $examinerDetails = $this->db->single();
+            }
+
+            return json_encode([
+                'success' => true,
+                'payload' => [
+                    'station_settings' => $stationSettings,
+                    'questions' => $questions,
+                    'students' => $students,
+                    'examiner' => $examinerDetails // Will be null for CBT, or populated for Procedure
                 ]
             ]);
 

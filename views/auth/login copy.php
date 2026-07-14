@@ -1,22 +1,13 @@
 <?php 
-$pageTitle = "Secure Exam Login"; 
+$pageTitle = "Secure Login"; 
 include '../views/layouts/header.php'; 
 ?>
-
-<!-- Load localforage before Alpine -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-
-<style>
-    [x-cloak] { display: none !important; }
-</style>
 
 <body class="bg-white font-sans antialiased min-h-screen flex" x-data="loginController()" x-cloak>
 
     <div x-show="isInitializing" class="fixed inset-0 bg-slate-900 z-50 flex flex-col items-center justify-center transition-opacity duration-300">
         <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p class="text-white font-medium animate-pulse">Initializing Exam Environment...</p>
+        <p class="text-white font-medium animate-pulse">Loading Workspace...</p>
     </div>
 
     <div class="hidden md:flex md:w-1/2 lg:w-3/5 relative bg-slate-900 overflow-hidden">
@@ -47,10 +38,10 @@ include '../views/layouts/header.php';
                         <span class="text-xs text-slate-400 font-bold"><?php echo APP_NAME; ?></span>
                     </template>
                 </div>
-                <h2 class="text-2xl font-bold text-slate-900">Secure Exam Login</h2>
+                <h2 class="text-2xl font-bold text-slate-900">Secure Sign In</h2>
             </div>
 
-            <!-- Device Provisioning Status Dashboard -->
+            <!-- NEW: Device Provisioning Status Dashboard -->
             <div class="mb-8">
                 <!-- State 1: Device is Bound and Data is Loaded -->
                 <template x-if="deviceState.isBound">
@@ -61,6 +52,7 @@ include '../views/layouts/header.php';
                                 Device Status
                             </span>
                             
+                            <!-- Dynamic Indicator -->
                             <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
                                   :class="deviceState.isPayloadReady ? 'bg-green-100 text-green-700 ring-1 ring-green-500/20' : 'bg-amber-100 text-amber-700 ring-1 ring-amber-500/20'">
                                 <span class="w-1.5 h-1.5 rounded-full" :class="deviceState.isPayloadReady ? 'bg-green-500' : 'bg-amber-500 animate-pulse'"></span>
@@ -92,29 +84,29 @@ include '../views/layouts/header.php';
                 <p class="text-sm font-medium text-red-800" x-text="errorMessage"></p>
             </div>
 
-            <!-- Offline Login Form -->
+            <!-- Login Form -->
             <form @submit.prevent="submitLogin" class="space-y-5">
                 <div>
-                    <label for="username" class="block text-sm font-semibold leading-6 text-slate-900">Matric Number / Examiner ID</label>
+                    <label for="username" class="block text-sm font-semibold leading-6 text-slate-900">Matric Number / Admin ID</label>
                     <div class="mt-1">
                         <input type="text" id="username" x-model="formData.username" required autocomplete="username" class="block w-full rounded-lg border-slate-300 py-3 px-4 text-slate-900 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm border bg-slate-50 transition-colors">
                     </div>
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-semibold leading-6 text-slate-900">Secure PIN / Password</label>
+                    <label for="password" class="block text-sm font-semibold leading-6 text-slate-900">Secure Password</label>
                     <div class="mt-1">
                         <input type="password" id="password" x-model="formData.password" required autocomplete="current-password" class="block w-full rounded-lg border-slate-300 py-3 px-4 text-slate-900 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm border bg-slate-50 transition-colors">
                     </div>
                 </div>
 
-                <button type="submit" :disabled="isLoading" class="flex w-full justify-center items-center rounded-lg bg-blue-600 px-3 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 transform active:scale-[0.98]">
+                <button type="submit" :disabled="isLoading || (!deviceState.isBound && formData.username.toLowerCase().indexOf('admin') === -1)" class="flex w-full justify-center items-center rounded-lg bg-blue-600 px-3 py-4 text-sm font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-6 transform active:scale-[0.98]">
                     <svg x-show="isLoading" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    <span x-text="isLoading ? 'Authenticating...' : 'Sign In to Exam'"></span>
+                    <span x-text="isLoading ? 'Authenticating...' : 'Sign In to Workspace'"></span>
                 </button>
             </form>
 
-            <!-- Admin Hardware Provisioning Link -->
+            <!-- NEW: Admin Hardware Provisioning Link -->
             <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center justify-center gap-2">
                 <?php if(defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT_SLUG !== null): ?>
                     <span class="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -142,6 +134,7 @@ include '../views/layouts/header.php';
                 isInitializing: true,
                 schoolData: { name: '', logo_path: '', cover_image_path: '' },
                 
+                // NEW: Device State Data
                 deviceState: {
                     isBound: false,
                     isPayloadReady: false,
@@ -150,17 +143,13 @@ include '../views/layouts/header.php';
                     sequence: ''
                 },
 
-                async init() {
+                init() {
                     if (!TENANT_SLUG || TENANT_SLUG === 'login') {
                         this.isInitializing = false;
                         return;
                     }
-                    await Promise.all([
-                        this.loadTenantData(),
-                        this.checkDeviceBinding()
-                    ]);
-                    
-                    this.isInitializing = false;
+                    this.loadTenantData();
+                    this.checkDeviceBinding();
                 },
 
                 getBaseApiUrl() {
@@ -169,17 +158,22 @@ include '../views/layouts/header.php';
                     return currentPath.split(`/${TENANT_SLUG}`)[0] + `/${TENANT_SLUG}`;
                 },
 
-                async checkDeviceBinding() {
+                // NEW: Read the localStorage payload to build the Status Badge
+                checkDeviceBinding() {
                     let sig = localStorage.getItem('caosce_device_signature');
-                    let payload = await localforage.getItem('caosce_offline_data');
+                    let offlineStr = localStorage.getItem('caosce_offline_data');
 
-                    if (sig && payload) {
+                    if (sig && offlineStr) {
                         try {
+                            let payload = JSON.parse(offlineStr);
+                            
                             this.deviceState.isBound = true;
+                            // Read settings from the backend schema you provided
                             this.deviceState.title = payload.station_settings.title || 'Station Locked';
                             this.deviceState.type = payload.station_settings.station_type || 'Unknown';
                             this.deviceState.sequence = payload.station_settings.order_sequence || '#';
                             
+                            // Check if payload arrays actually have data
                             if (payload.students && payload.students.length > 0 && payload.questions && payload.questions.length > 0) {
                                 this.deviceState.isPayloadReady = true;
                             }
@@ -198,6 +192,7 @@ include '../views/layouts/header.php';
 
                     if (cachedData) {
                         this.schoolData = JSON.parse(cachedData);
+                        setTimeout(() => { this.isInitializing = false; }, 300);
                         return;
                     }
 
@@ -212,6 +207,8 @@ include '../views/layouts/header.php';
                         }
                     } catch (error) {
                         console.error('Could not load tenant branding:', error);
+                    } finally {
+                        this.isInitializing = false;
                     }
                 },
 
@@ -219,78 +216,74 @@ include '../views/layouts/header.php';
                     this.isLoading = true;
                     this.errorMessage = '';
 
-                    // Security Gate 1: Check if bound
-                    if (!this.deviceState.isBound) {
-                        this.errorMessage = 'Access Denied: This device has not been bound by an Administrator.';
-                        this.isLoading = false;
+                    // IF OFFLINE DATA EXISTS: Validate locally instead of hitting the server!
+                    if (this.deviceState.isBound && this.deviceState.isPayloadReady && navigator.onLine === false) {
+                        this.performOfflineLogin();
                         return;
                     }
 
-                    // Security Gate 2: Check if payload is downloaded
-                    if (!this.deviceState.isPayloadReady) {
-                        this.errorMessage = 'Data Missing: Please contact the admin to sync this device.';
-                        this.isLoading = false;
-                        return;
-                    }
+                    // Otherwise, perform standard online login
+                    let deviceSig = localStorage.getItem('caosce_device_signature');
+                    let apiUrl = this.getBaseApiUrl() + '/api/login';
 
-                    await this.performOfflineLogin();
+                    try {
+                        let response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                            body: JSON.stringify({
+                                username: this.formData.username,
+                                password: this.formData.password,
+                                device_signature: deviceSig
+                            })
+                        });
+
+                        let data = await response.json();
+
+                        if (data.success) {
+                            window.location.href = this.getBaseApiUrl() + data.redirect_url;
+                        } else {
+                            this.errorMessage = data.message || 'Login failed. Please verify your credentials.';
+                        }
+                    } catch (error) {
+                        // Fallback to offline login if server goes down but data exists
+                        if (this.deviceState.isPayloadReady) {
+                            this.performOfflineLogin();
+                        } else {
+                            this.errorMessage = 'Network error. Device is not provisioned for offline use.';
+                            this.isLoading = false;
+                        }
+                    }
                 },
 
-                async performOfflineLogin() {
+                // NEW: Handle offline authentication
+                performOfflineLogin() {
                     try {
-                        let payload = await localforage.getItem('caosce_offline_data');
-                        
+                        let payload = JSON.parse(localStorage.getItem('caosce_offline_data'));
                         let inputUser = this.formData.username.trim().toLowerCase();
                         let inputPass = this.formData.password.trim();
-                        let stationType = payload.station_settings.station_type;
-                        let stationId = payload.station_id;
 
-                        // 1. EXAMINER ROUTING (Procedure Stations Only)
-                        if (stationType === 'procedure' && payload.examiner) {
-                            if (payload.examiner.username.toLowerCase() === inputUser && payload.examiner.raw_password === inputPass) {
-                                sessionStorage.setItem('caosce_offline_auth', JSON.stringify({
-                                    role: 'examiner',
-                                    id: payload.examiner.id,
-                                    name: payload.examiner.full_name,
-                                    username: payload.examiner.username,
-                                    login_time: Date.now()
-                                }));
-                                window.location.href = this.getBaseApiUrl() + `/examiner/rubric?station_id=${stationId}`;
-                                return;
-                            }
+                        // Find student in local array
+                        let student = payload.students.find(s => 
+                            s.matric_number.toLowerCase() === inputUser && s.raw_password === inputPass
+                        );
+
+                        if (student) {
+                            // Create a temporary offline auth token
+                            sessionStorage.setItem('caosce_offline_auth', JSON.stringify({
+                                student_id: student.id,
+                                matric: student.matric_number,
+                                name: student.full_name,
+                                login_time: Date.now()
+                            }));
+                            
+                            // Redirect to offline exam engine
+                            window.location.href = this.getBaseApiUrl() + '/exam/engine';
+                        } else {
+                            this.errorMessage = 'Offline Authentication Failed: Invalid matric number or PIN.';
+                            this.isLoading = false;
                         }
-
-                        // 2. STUDENT ROUTING
-                        if (payload.students) {
-                            let student = payload.students.find(s => 
-                                s.matric_number.toLowerCase() === inputUser && s.raw_password === inputPass
-                            );
-
-                            if (student) {
-                                sessionStorage.setItem('caosce_offline_auth', JSON.stringify({
-                                    role: 'student',
-                                    id: student.id,
-                                    matric: student.matric_number,
-                                    name: student.full_name,
-                                    login_time: Date.now()
-                                }));
-                                
-                                if (stationType === 'cbt') {
-                                    window.location.href = this.getBaseApiUrl() + `/student/cbt?station_id=${stationId}`;
-                                } else {
-                                    window.location.href = this.getBaseApiUrl() + `/student/procedure_standby?station_id=${stationId}`;
-                                }
-                                return;
-                            }
-                        }
-
-                        // 3. NO MATCH FOUND
-                        this.errorMessage = 'Invalid Matric Number/Examiner ID or Password.';
-
                     } catch(e) {
-                        console.error(e);
                         this.errorMessage = 'Critical Error reading offline database.';
-                    } finally {
                         this.isLoading = false;
                     }
                 }

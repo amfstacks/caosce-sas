@@ -146,7 +146,7 @@
 
                         if (data.success) {
                             this.payload = data.payload;
-                            print(data.payload);
+                            // print(data.payload);
                             // print('data.payload');
                             // Smooth transition
                             setTimeout(() => {

@@ -82,9 +82,23 @@ $router->post('/api/admin/hardware/delete', ['BindingController', 'deletePin']);
 $router->post('/api/setup/verify-pin', ['BindingController', 'verifyPin']);
 $router->get('/api/setup/download-payload', ['BindingController', 'downloadOfflinePayload']);
 
+
+// ==========================================
+// OFFLINE & SYNC API ROUTES
+// ==========================================
+
+// 1. Real-time background syncing of individual clicks/ticks
+$router->post('/api/sync/tick', ['SyncController', 'logTick']);
+
+// 2. Final submission payload (Single student submission or bulk admin push)
+$router->post('/api/sync/cbt-score', ['SyncController', 'finalizeScore']);
+
 // The Device Binding screen route
 $router->get('/admin/bind-device', 'views/admin/bind-device.php');
 
+
+// Admin Sync Dashboard
+$router->get('/admin/sync', 'views/admin/sync-dashboard.php');
 
 
 // Dispatch the current request

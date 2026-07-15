@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CASOCE - CBT Examination</title>
-    <!-- localforage for massive offline database capacity -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/localforage/1.10.0/localforage.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -13,6 +11,7 @@
         .touch-btn:active { transform: scale(0.98); }
         .no-select { user-select: none; -webkit-user-select: none; }
         
+        /* Toggle Switch Styling */
         .toggle-checkbox:checked { right: 0; border-color: #2563eb; }
         .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
         .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
@@ -24,20 +23,9 @@
       @keydown.window="handleKeydown($event)"
       x-cloak>
 
-    <!-- Preloader -->
-    <div x-show="isLoading" class="fixed inset-0 z-[300] bg-slate-900 flex flex-col items-center justify-center p-4">
-        <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p class="text-white font-medium animate-pulse">Loading Exam Payload...</p>
-    </div>
-
-    <!-- Start Screen -->
-    <div x-show="!examStarted && !isLoading" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-4">
-        <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-2xl max-w-xl w-full text-center relative overflow-hidden">
-            <div x-show="restoredSession" class="absolute top-0 left-0 w-full bg-amber-100 text-amber-800 py-2 text-xs font-bold uppercase tracking-wider">
-                Previous Session Recovered
-            </div>
-
-            <div class="mx-auto w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6 mt-4">
+    <div x-show="!examStarted" class="fixed inset-0 z-[100] bg-slate-900 flex flex-col items-center justify-center p-4">
+        <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-2xl max-w-xl w-full text-center">
+            <div class="mx-auto w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
                 <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <h1 class="text-3xl font-bold text-slate-900 mb-2">Ready to Begin?</h1>
@@ -45,12 +33,11 @@
             
             <button @click="startExamAction()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg shadow-lg transition-colors flex items-center justify-center gap-3 touch-btn">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                <span x-text="restoredSession ? 'Resume Exam (Fullscreen)' : 'Start Exam (Fullscreen)'"></span>
+                Start Exam (Enters Fullscreen)
             </button>
         </div>
     </div>
 
-    <!-- Lockdown Screen -->
     <div x-show="isLocked" style="display: none;" class="fixed inset-0 z-[200] bg-red-900 flex flex-col items-center justify-center p-4 backdrop-blur-md">
         <div class="bg-white p-8 sm:p-12 rounded-2xl shadow-2xl max-w-xl w-full text-center border-t-8 border-red-600">
             <div class="mx-auto w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-6 animate-pulse">
@@ -66,7 +53,6 @@
         </div>
     </div>
 
-    <!-- Header -->
     <header class="bg-slate-900 text-white flex-shrink-0 z-20 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4">
@@ -95,20 +81,15 @@
 
     <main class="flex-grow relative overflow-hidden flex flex-col md:flex-row">
         
-        <!-- Sidebar Navigator -->
         <aside class="w-full md:w-64 bg-white border-r border-slate-200 flex-shrink-0 flex flex-col shadow-[4px_0_10px_rgba(0,0,0,0.02)] z-10 hidden md:flex">
-            <div class="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                <div>
-                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Navigator</h3>
-                    <p class="text-xs text-slate-500 mt-1"><span x-text="answeredCount"></span> of <span x-text="questions.length"></span> answered</p>
-                </div>
-                <!-- Mini Sync Indicator -->
-                <div title="Saving progress locally..." class="w-2 h-2 rounded-full" :class="isSaving ? 'bg-amber-400 animate-pulse' : 'bg-green-400'"></div>
+            <div class="p-4 border-b border-slate-100 bg-slate-50">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Question Navigator</h3>
+                <p class="text-xs text-slate-500 mt-1"><span x-text="answeredCount"></span> of <span x-text="questions.length"></span> answered</p>
             </div>
             
             <div class="flex-grow overflow-y-auto p-4">
                 <div class="grid grid-cols-4 gap-2 mb-8">
-                    <template x-for="(q, idx) in questions" :key="q.id">
+                    <template x-for="(q, idx) in questions" :key="idx">
                         <button @click="jumpToQuestion(idx)" 
                                 class="h-10 rounded-md font-bold text-sm flex items-center justify-center transition-all touch-btn border"
                                 :class="{
@@ -123,6 +104,7 @@
             </div>
 
             <div class="mt-auto border-t border-slate-200 bg-slate-50 p-4">
+                
                 <div class="flex items-center justify-between mb-4">
                     <span class="text-sm font-medium text-slate-700">Auto-Advance</span>
                     <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
@@ -142,7 +124,6 @@
             </div>
         </aside>
 
-        <!-- Question Area -->
         <div class="flex-grow flex flex-col relative overflow-hidden bg-slate-50/50">
             
             <div class="h-1 bg-slate-200 w-full md:hidden">
@@ -157,16 +138,14 @@
                             <div class="p-6 sm:p-10 border-b border-slate-100 bg-slate-50 flex justify-between items-start">
                                 <div>
                                     <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 ring-1 ring-inset ring-blue-700/10 mb-4" x-text="'Question ' + (currentIndex + 1) + ' of ' + questions.length"></span>
-                                    <h2 class="text-2xl sm:text-3xl font-medium text-slate-900 leading-snug whitespace-pre-wrap" x-text="currentQuestion.question_text"></h2>
+                                    <h2 class="text-2xl sm:text-3xl font-medium text-slate-900 leading-snug" x-text="currentQuestion.text"></h2>
                                 </div>
                             </div>
                             
                             <div class="p-6 sm:p-10 bg-white">
                                 <div class="space-y-4">
                                     <template x-for="opt in ['A', 'B', 'C', 'D']" :key="opt">
-                                        <!-- Only show option if it exists in the database -->
-                                        <button x-show="currentQuestion['opt_' + opt.toLowerCase()]"
-                                                @click="selectOption(opt)" 
+                                        <button @click="selectOption(opt)" 
                                                 class="w-full flex items-center p-4 rounded-xl border-2 text-left transition-all touch-btn group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                                                 :class="currentQuestion.selected === opt ? 'border-blue-500 bg-blue-50 shadow-sm' : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'">
                                             
@@ -175,7 +154,7 @@
                                                 <span x-text="opt"></span>
                                             </div>
                                             
-                                            <span class="text-lg font-medium text-slate-800" x-text="currentQuestion['opt_' + opt.toLowerCase()]"></span>
+                                            <span class="text-lg font-medium text-slate-800" x-text="currentQuestion['opt' + opt]"></span>
                                             
                                             <div class="ml-auto" x-show="currentQuestion.selected === opt">
                                                 <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -190,7 +169,6 @@
                 </div>
             </div>
 
-            <!-- Footer Actions -->
             <div class="bg-white border-t border-slate-200 p-4 sm:px-8 flex justify-between items-center shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                 <button @click="prevQuestion" 
                         class="px-6 py-3 rounded-lg font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-50 touch-btn flex items-center gap-2"
@@ -210,15 +188,15 @@
                 <button x-show="currentIndex === questions.length - 1" 
                         @click="confirmSubmit" 
                         class="px-8 py-3 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-colors shadow-lg touch-btn flex items-center gap-2 animate-bounce-once"
-                        :disabled="!examStarted || isLocked || isSubmitting">
+                        :disabled="!examStarted || isLocked">
                     Finish Exam
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </button>
             </div>
+
         </div>
     </main>
 
-    <!-- Submission Modal -->
     <div x-show="showConfirmModal" class="relative z-50" aria-labelledby="modal-title" role="dialog" aria-modal="true" style="display: none;">
         <div class="fixed inset-0 bg-slate-900 bg-opacity-75 backdrop-blur-sm transition-opacity"></div>
         <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -241,10 +219,10 @@
                         </div>
                     </div>
                     <div class="mt-6 sm:mt-8 sm:flex sm:flex-row-reverse gap-3">
-                        <button type="button" @click="finalizeExam" :disabled="isSubmitting" class="inline-flex w-full justify-center rounded-lg bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-500 sm:w-auto focus:outline-none disabled:opacity-50">
-                            <span x-text="isSubmitting ? 'Saving Offline Record...' : 'Yes, Submit Final Answers'"></span>
+                        <button type="button" @click="finalizeExam" class="inline-flex w-full justify-center rounded-lg bg-blue-600 px-3 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-500 sm:w-auto focus:outline-none">
+                            Yes, Submit Final Answers
                         </button>
-                        <button type="button" @click="showConfirmModal = false" :disabled="isSubmitting" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-3 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto focus:outline-none disabled:opacity-50">
+                        <button type="button" @click="showConfirmModal = false" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-3 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto focus:outline-none">
                             Return to Exam
                         </button>
                     </div>
@@ -254,87 +232,34 @@
     </div>
 
     <script>
-        const TENANT_SLUG = '<?php echo CURRENT_TENANT_SLUG ?? "global"; ?>';
-
         function cbtController() {
             return {
-                isLoading: true,
                 station: {},
                 student: {},
                 questions: [],
                 
                 examStarted: false,
                 autoNext: true,
-                isLocked: false,     
-                isSubmitting: false, 
-                isSaving: false, // Tracks background autosave
+                isLocked: false,     // Tracks if they exited fullscreen
+                isSubmitting: false, // Prevents lockdown from triggering when they legitimately submit
                 
                 currentIndex: 0,
                 showConfirmModal: false,
                 
-                examDurationMinutes: 15, // Default fallback
+                examDurationMinutes: 15,
                 timeRemaining: 0,
                 timerInterval: null,
-                restoredSession: false,
-                session_id: '',
 
-                async init() {
-                    // 1. Verify Student is logged in offline
-                    const authStr = sessionStorage.getItem('caosce_offline_auth');
-                    if (!authStr) {
-                        alert("Unauthorized. Please log in.");
-                        window.location.href = `/${TENANT_SLUG}/login`;
-                        return;
-                    }
-                    this.student = JSON.parse(authStr);
-
-                    // 2. Load the Heavy Payload from IndexedDB
-                    await this.loadOfflinePayload();
+                init() {
+                    this.loadOfflinePayload();
                     
-                    // 3. Monitor Fullscreen compliance
+                    // Listen for the browser escaping Fullscreen mode
                     document.addEventListener('fullscreenchange', () => {
+                        // If they are taking the exam, not currently submitting, and just lost fullscreen element
                         if (this.examStarted && !this.isSubmitting && !document.fullscreenElement) {
-                            this.isLocked = true;
+                            this.isLocked = true; // Throw up the lockdown wall
                         }
                     });
-                },
-
-                getBaseApiUrl() {
-                    let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
-                    return TENANT_SLUG ? `${basePath}/${TENANT_SLUG}` : basePath;
-                },
-
-                async loadOfflinePayload() {
-                    try {
-                        const payload = await localforage.getItem('caosce_offline_data');
-                        if (!payload) throw new Error("Offline database is empty.");
-
-                        this.station = payload.station_settings;
-                        this.session_id = payload.session_id;
-                        this.examDurationMinutes = this.station.time_limit_minutes || 15;
-                        
-                        // Check if student has an auto-saved progress record from a browser crash
-                        const progressKey = `caosce_progress_${this.student.id}_${this.station.id}`;
-                        const savedProgressStr = localStorage.getItem(progressKey);
-                        
-                        if (savedProgressStr) {
-                            const savedProgress = JSON.parse(savedProgressStr);
-                            this.questions = savedProgress.questions;
-                            this.timeRemaining = savedProgress.timeRemaining;
-                            this.restoredSession = true;
-                        } else {
-                            // First time opening exam, map raw questions and append 'selected' field
-                            this.questions = payload.questions.map(q => ({ ...q, selected: null }));
-                            this.timeRemaining = this.examDurationMinutes * 60;
-                        }
-
-                        this.isLoading = false;
-
-                    } catch (error) {
-                        console.error("Failed to load exam data:", error);
-                        alert("Critical Error: Missing offline exam data. Please ask the administrator to bind this device.");
-                        window.location.href = `/${TENANT_SLUG}/login`;
-                    }
                 },
 
                 startExamAction() {
@@ -344,6 +269,10 @@
                     let elem = document.documentElement;
                     if (elem.requestFullscreen) {
                         elem.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
+                    } else if (elem.webkitRequestFullscreen) { /* Safari */
+                        elem.webkitRequestFullscreen();
+                    } else if (elem.msRequestFullscreen) { /* IE11 */
+                        elem.msRequestFullscreen();
                     }
                 },
 
@@ -351,7 +280,7 @@
                     let elem = document.documentElement;
                     if (elem.requestFullscreen) {
                         elem.requestFullscreen().then(() => {
-                            this.isLocked = false;
+                            this.isLocked = false; // Drop the lockdown wall
                         }).catch(err => {
                             alert("Cannot resume. Please ensure your browser allows fullscreen mode.");
                         });
@@ -360,10 +289,24 @@
 
                 handleKeydown(e) {
                     if (!this.examStarted || this.showConfirmModal || this.isLocked) return;
+                    
                     const key = e.key.toUpperCase();
+                    
                     if (key === 'N') { this.nextQuestion(); e.preventDefault(); }
                     if (key === 'P') { this.prevQuestion(); e.preventDefault(); }
                     if (['A', 'B', 'C', 'D'].includes(key)) { this.selectOption(key); e.preventDefault(); }
+                },
+
+                loadOfflinePayload() {
+                    this.station = { id: 'st-2', sequence: 2, title: 'Anatomy Baseline Review', score_per_question: 2 };
+                    this.student = { id: 14, matric: 'NS/2026/089', name: 'Fatima Bello' };
+                    let rawQuestions = [
+                        { id: 201, text: 'Which bone is located in the upper arm?', optA: 'Radius', optB: 'Ulna', optC: 'Humerus', optD: 'Femur', correct_answer: 'C' },
+                        { id: 202, text: 'The central nervous system consists of what two main parts?', optA: 'Brain and Spinal Cord', optB: 'Nerves and Ganglia', optC: 'Heart and Lungs', optD: 'Cerebrum and Cerebellum', correct_answer: 'A' },
+                        { id: 203, text: 'What is the largest organ in the human body?', optA: 'Liver', optB: 'Skin', optC: 'Large Intestine', optD: 'Heart', correct_answer: 'B' },
+                        { id: 204, text: 'Which blood vessels carry oxygenated blood away from the heart?', optA: 'Veins', optB: 'Capillaries', optC: 'Venules', optD: 'Arteries', correct_answer: 'D' }
+                    ];
+                    this.questions = rawQuestions.map(q => ({ ...q, selected: null }));
                 },
 
                 get currentQuestion() { return this.questions[this.currentIndex]; },
@@ -373,16 +316,8 @@
                 nextQuestion() { if (this.currentIndex < this.questions.length - 1) this.currentIndex++; },
                 prevQuestion() { if (this.currentIndex > 0) this.currentIndex--; },
 
-                async selectOption(opt) {
-                    // Update state locally
+                selectOption(opt) {
                     this.questions[this.currentIndex].selected = opt;
-                    
-                    // Trigger Background Auto-Save
-                    this.autoSaveProgress();
-
-                    // Try pushing individual tick to online server (Fire & Forget)
-                    this.syncTickOnline(this.questions[this.currentIndex].id, opt);
-
                     if (this.autoNext) {
                         setTimeout(() => {
                             if (this.currentIndex < this.questions.length - 1) {
@@ -394,131 +329,59 @@
                     }
                 },
 
-                // Saves current state so if battery dies, they resume exactly here
-                autoSaveProgress() {
-                    this.isSaving = true;
-                    const progressKey = `caosce_progress_${this.student.id}_${this.station.id}`;
-                    const progressData = {
-                        questions: this.questions,
-                        timeRemaining: this.timeRemaining,
-                        last_saved: Date.now()
-                    };
-                    localStorage.setItem(progressKey, JSON.stringify(progressData));
-                    setTimeout(() => { this.isSaving = false; }, 500);
-                },
-
-                // Attempts to send a single tick online. If it fails, we don't care.
-                async syncTickOnline(questionId, answer) {
-                    if (!navigator.onLine) return;
-                    try {
-                        await fetch(this.getBaseApiUrl() + '/api/sync/tick', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                student_id: this.student.id,
-                                exam_session_id: this.session_id,
-                                question_id: questionId,
-                                answer: answer
-                            })
-                        });
-                    } catch(e) { /* Silent fail, offline record is primary source of truth */ }
-                },
-
                 confirmSubmit() { this.showConfirmModal = true; },
 
-                async finalizeExam() {
+                finalizeExam() {
                     this.stopTimer();
-                    this.isSubmitting = true;
+                    this.isSubmitting = true; // Tell the system an intentional exit is happening
                     
                     if (document.fullscreenElement) {
                         document.exitFullscreen().catch(err => console.log(err));
                     }
 
-                    // 1. Calculate Score Locally
+                    let scoreMultiplier = this.station.score_per_question;
                     let calculatedScore = 0;
+                    
                     let breakdown = this.questions.map(q => {
-                        let scoreMultiplier = parseFloat(q.score) || 1; // From DB schema
                         let isCorrect = (q.selected === q.correct_answer);
                         let earned = isCorrect ? scoreMultiplier : 0;
                         calculatedScore += earned;
-                        
-                        return { question_id: q.id, answer_chosen: q.selected, earned: earned, is_correct: isCorrect };
+                        return { id: q.id, answer_chosen: q.selected, earned: earned };
                     });
 
-                    let maxPossible = this.questions.reduce((sum, q) => sum + (parseFloat(q.score) || 1), 0);
+                    let maxPossible = this.questions.length * scoreMultiplier;
 
-                    // 2. Build the Final Offline Record
-                    const finalRecord = {
-                        record_id: this.generateUUID(),
+                    let resultPayload = {
                         student_id: this.student.id,
                         matric: this.student.matric,
-                        student_name: this.student.name,
-                        session_id: this.session_id,
                         station_id: this.station.id,
-                        station_title: this.station.title,
                         total_score: calculatedScore,
                         max_possible: maxPossible,
                         breakdown: breakdown,
-                        timestamp: Date.now(),
-                        sync_status: 'pending' // Tells Admin Dashboard this needs uploading
+                        timestamp: Date.now()
                     };
 
-                    // 3. Save to localforage (Master Record Array)
-                    try {
-                        let records = await localforage.getItem('caosce_exam_records') || [];
-                        // Ensure no duplicate submission exists for this student/station
-                        records = records.filter(r => !(r.student_id === finalRecord.student_id && r.station_id === finalRecord.station_id));
-                        records.push(finalRecord);
-                        await localforage.setItem('caosce_exam_records', records);
+                    let syncQueue = JSON.parse(localStorage.getItem('caosce_sync_queue') || '[]');
+                    syncQueue.push({
+                        endpoint: '/api/sync/cbt-score',
+                        payload: resultPayload,
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem('caosce_sync_queue', JSON.stringify(syncQueue));
 
-                        // Clear temporary progress cache
-                        localStorage.removeItem(`caosce_progress_${this.student.id}_${this.station.id}`);
-                        
-                        // Remove auth token so next student can log in
-                        sessionStorage.removeItem('caosce_offline_auth');
-
-                        // 4. Attempt Online Sync Immediately
-                        await this.attemptFinalSync(finalRecord);
-
-                        alert(`Exam Submitted Successfully. Score securely cached.`);
-                        window.location.href = `/${TENANT_SLUG}/login`;
-
-                    } catch(e) {
-                        console.error(e);
-                        alert("Critical Error saving exam. Do NOT close browser. Call Administrator immediately.");
-                        this.isSubmitting = false;
+                    if (typeof window.CAOSCE_BackgroundSync === 'function') {
+                        window.CAOSCE_BackgroundSync();
                     }
-                },
 
-                // Tries to sync to server immediately. If offline, the Admin Dashboard will handle it later.
-                async attemptFinalSync(record) {
-                    if (!navigator.onLine) return;
-                    try {
-                        let response = await fetch(this.getBaseApiUrl() + '/api/sync/cbt-score', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(record)
-                        });
-                        let data = await response.json();
-                        
-                        if (data.success) {
-                            // Mark as synced locally so Admin doesn't push it again
-                            let records = await localforage.getItem('caosce_exam_records');
-                            let idx = records.findIndex(r => r.record_id === record.record_id);
-                            if (idx > -1) {
-                                records[idx].sync_status = 'synced';
-                                await localforage.setItem('caosce_exam_records', records);
-                            }
-                        }
-                    } catch(e) { console.log("Final sync failed. Will remain pending in offline DB."); }
+                    alert(`Exam Submitted Successfully. Your score has been securely saved.`);
+                    window.location.href = '/<?php echo CURRENT_TENANT_SLUG ?? "global"; ?>/login';
                 },
 
                 startTimer() {
+                    this.timeRemaining = this.examDurationMinutes * 60;
                     this.timerInterval = setInterval(() => {
                         if (this.timeRemaining > 0) {
                             this.timeRemaining--;
-                            // Background save timer every 30 seconds
-                            if(this.timeRemaining % 30 === 0) this.autoSaveProgress();
                         } else {
                             this.stopTimer();
                             this.showConfirmModal = false;
@@ -533,13 +396,6 @@
                     let m = Math.floor(this.timeRemaining / 60).toString().padStart(2, '0');
                     let s = (this.timeRemaining % 60).toString().padStart(2, '0');
                     return `${m}:${s}`;
-                },
-                
-                generateUUID() {
-                    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-                        return v.toString(16);
-                    });
                 }
             }
         }

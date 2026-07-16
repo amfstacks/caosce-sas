@@ -101,6 +101,9 @@ $router->get('/admin/bind-device', 'views/admin/bind-device.php');
 $router->get('/admin/sync', 'views/admin/sync-dashboard.php');
 
 
+$router->get('/exam', 'views/offline-app/master.php');
+
+
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];

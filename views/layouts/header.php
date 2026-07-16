@@ -33,7 +33,7 @@
     
     <!-- Global Sync Engine -->
     <?php $baseDir = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/'); ?>
-    <script src="<?php echo $baseDir; ?>/public/js/sync-engine.js"></script>
+    <!-- <script src="<?php echo $baseDir; ?>/public/js/sync-engine.js"></script> -->
     
     <?php if (isset($extraStyles)) echo $extraStyles; ?>
 </head>

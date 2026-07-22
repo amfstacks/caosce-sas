@@ -1,5 +1,5 @@
 // caosce_app/sw.js
-const CACHE_NAME = 'caosce-offline-shell-v9';
+const CACHE_NAME = 'caosce-offline-shell-v8';
 
 const ASSETS_TO_CACHE = [
     './public/assets/localforage.min.js',
@@ -8,31 +8,17 @@ const ASSETS_TO_CACHE = [
     'https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap'
 ];
 
-// 1. INSTALL PHASE (Bulletproof Loop)
 self.addEventListener('install', (event) => {
     self.skipWaiting();
     event.waitUntil(
         caches.open(CACHE_NAME).then(async (cache) => {
-            console.log('[SW] Downloading assets safely...');
-            
-            // We are using a loop instead of cache.addAll(). 
-            // If the Google Font fails CORS, it safely catches the error and moves on,
-            // allowing the Service Worker to successfully finish installing!
             for (let asset of ASSETS_TO_CACHE) {
-                try { 
-                    // Use 'no-cors' for external links like Google Fonts
-                    const request = new Request(asset, { mode: asset.startsWith('http') ? 'no-cors' : 'cors' });
-                    const response = await fetch(request);
-                    await cache.put(request, response);
-                } catch (e) {
-                    console.warn('[SW] Skipped caching asset:', asset);
-                }
+                try { await cache.add(asset); } catch (e) {}
             }
         })
     );
 });
 
-// 2. ACTIVATE PHASE
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
@@ -46,29 +32,25 @@ self.addEventListener('activate', (event) => {
     self.clients.claim(); 
 });
 
-// 3. FETCH PHASE
 self.addEventListener('fetch', (event) => {
-    
-    // A. Page Navigation (The Master Shell)
     if (event.request.mode === 'navigate') {
         event.respondWith(
             fetch(event.request).catch(async () => {
                 const cache = await caches.open(CACHE_NAME);
+                
+                // Return the Universal Master Shell
                 const fallback = await cache.match('/offline-master-shell');
                 if (fallback) return fallback;
+                
                 return cache.match(event.request, { ignoreSearch: true });
             })
         );
         return;
     }
 
-    // B. Static Assets
     event.respondWith(
         caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-            // FIX: Added .catch() to silently handle network failures and prevent the red console error!
-            return cachedResponse || fetch(event.request).catch(() => {
-                // Silently swallow the error when offline
-            });
+            return cachedResponse || fetch(event.request);
         })
     );
 });

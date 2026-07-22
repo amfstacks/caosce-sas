@@ -87,7 +87,12 @@
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 <p class="font-bold uppercase tracking-wider text-xs">Device Conflict Detected</p>
                             </div>
-                            <p class="leading-snug">This device is already bound to <strong class="text-yellow-400" x-text="'Station ' + existingTarget?.station_sequence + ' (' + existingTarget?.station_title + ')'"></strong>. Binding to a new station will permanently erase its cached offline data.</p>
+                            <!-- <p class="leading-snug">This device is already bound to <strong class="text-yellow-400" x-text="'Station ' + existingTarget?.station_sequence + ' (' + existingTarget?.station_title + ')'"></strong>. Binding to a new station will permanently erase its cached offline data.</p> -->
+                             <p class="leading-snug">
+    This device is already bound to 
+    <strong class="text-yellow-400" x-text="(existingTarget?.session_title || 'Unknown Session') + ' — Station ' + (existingTarget?.station_sequence || '?') + ' (' + (existingTarget?.station_title || 'Unknown') + ')'"></strong>. 
+    Binding to a new station will permanently erase its cached offline data.
+</p>
                         </div>
 
                         <!-- Buttons: No Conflict or Exact Match -->
@@ -431,9 +436,10 @@
 
                     window.addEventListener('navigate', (e) => {
                         if (e.detail === 'setup') {
+                            this.setupPhase = 'gatekeeper';
                             this.resetGatekeeper();
-                            sessionStorage.removeItem('caosce_binding_payload');
-                            sessionStorage.removeItem('caosce_provision_pin');
+                            // sessionStorage.removeItem('caosce_binding_payload');
+                            // sessionStorage.removeItem('caosce_provision_pin');
                         }
                     });
                 },
@@ -445,6 +451,7 @@
 
                 // --- GATEKEEPER FUNCTIONS --- //
                 resetGatekeeper() {
+                    this.setupPhase = 'gatekeeper';
                     this.step = 'input';
                     this.pin = '';
                     this.errorMessage = '';
@@ -480,17 +487,30 @@
                         if (data.success) {
                             this.target = data.payload;
                             
+
+                           // Check localforage for existing data to detect conflicts
                             // Check localforage for existing data to detect conflicts
                             try {
                                 const parsed = await localforage.getItem('caosce_offline_data');
                                 if (parsed && parsed.station_id) {
-                                    this.existingTarget = parsed.station_settings || parsed;
                                     
-                                    if (this.existingTarget.station_id === this.target.station_id) {
+                                    // Extract IDs and explicitly grab titles (with fallbacks for older cached data)
+                                    this.existingTarget = {
+                                        session_id: parsed.session_id,
+                                        station_id: parsed.station_id,
+                                        session_title: parsed.session_title || parsed.station_settings?.session_title || 'Unknown Session',
+                                        station_title: parsed.station_title || parsed.station_settings?.station_title || 'Unknown Station',
+                                        station_sequence: parsed.station_sequence || parsed.station_settings?.station_sequence || '?'
+                                    };
+                                    
+                                    // Strict Behind-the-Scenes Check: BOTH Session and Station must match exactly
+                                    if (this.existingTarget.session_id === this.target.session_id && 
+                                        this.existingTarget.station_id === this.target.station_id) {
                                         this.bindingStatus = 'match';
                                     } else {
                                         this.bindingStatus = 'conflict';
                                     }
+                                    
                                 } else {
                                     this.bindingStatus = 'none';
                                 }
@@ -578,6 +598,9 @@
                             const offlinePayload = {
                                 session_id: this.target.session_id,
                                 station_id: this.target.station_id,
+                                session_title: this.target.session_title,
+                                station_title: this.target.station_title,
+                                station_sequence: this.target.station_sequence,
                                 sync_timestamp: Date.now(),
                                 students: data.payload.students,
                                 questions: data.payload.questions,

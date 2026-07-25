@@ -51,7 +51,7 @@ class SessionWorkspaceController {
 
         // 4. Fetch Stations
         $this->db->query("
-            SELECT id, order_sequence as sequence, station_type as type, title, 
+            SELECT id, order_sequence as sequence, station_type as type, title,time_limit_minutes, 
                    score_per_question, examiner_id, is_confirmed as confirmed 
             FROM stations 
             WHERE exam_session_id = :id 
@@ -305,10 +305,11 @@ class SessionWorkspaceController {
 
         try {
             // We ONLY update the core parameters now. We do NOT touch the questions table here anymore.
-            $this->db->query("UPDATE stations SET title = :title, examiner_id = :examiner_id, score_per_question = :score, is_confirmed = :confirmed WHERE id = :id");
+            $this->db->query("UPDATE stations SET title = :title, examiner_id = :examiner_id, score_per_question = :score,time_limit_minutes = :time_limit, is_confirmed = :confirmed WHERE id = :id");
             $this->db->bind(':title', !empty($station['title']) ? trim($station['title']) : '');
             $this->db->bind(':examiner_id', !empty($station['examiner_id']) ? $station['examiner_id'] : null);
             $this->db->bind(':score', !empty($station['score_per_question']) ? $station['score_per_question'] : null);
+            $this->db->bind(':time_limit', !empty($station['time_limit_minutes']) ? (int)$station['time_limit_minutes'] : null);
             $this->db->bind(':confirmed', !empty($station['confirmed']) ? 1 : 0);
             $this->db->bind(':id', $station['id']);
             $this->db->execute();

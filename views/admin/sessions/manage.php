@@ -288,6 +288,11 @@ include '../views/layouts/header.php';
                                             <label class="block text-sm font-bold text-slate-700">Score per Question (Marks)</label>
                                             <input type="number" min="1" x-model="stationModal.station.score_per_question" class="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border" placeholder="e.g. 2">
                                         </div>
+                                        <!-- NEW: Add this block for Duration -->
+                                        <div x-show="stationModal.station.type === 'cbt'">
+                                            <label class="block text-sm font-bold text-slate-700">Exam Duration (Minutes)</label>
+                                            <input type="number" min="1" x-model="stationModal.station.time_limit_minutes" class="mt-1.5 block w-full rounded-lg border-slate-300 py-2.5 px-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border" placeholder="e.g. 15">
+                                        </div>
                                     </div>
                                 </div>
 
@@ -596,6 +601,9 @@ include '../views/layouts/header.php';
                         if(this.stationModal.station.type === 'procedure' && (!this.stationModal.station.examiner_id || this.stationModal.station.examiner_id === '')) { alert("Cannot confirm: Procedure stations must have an assigned examiner."); return; }
                         if(this.stationModal.station.type === 'cbt' && !this.stationModal.station.score_per_question) { alert("Cannot confirm: Please set the Score per Question (Marks)."); return; }
                         
+// NEW: Validation for Time Limit
+                        if(this.stationModal.station.type === 'cbt' && !this.stationModal.station.time_limit_minutes) { alert("Cannot confirm: Please set the Exam Duration (Minutes)."); return; }
+
                         let hasValidQuestion = this.stationModal.station.questions && this.stationModal.station.questions.length > 0;
                         if(!hasValidQuestion) { alert("Cannot confirm: You must add at least one question or scenario."); return; }
                     }
@@ -621,6 +629,10 @@ include '../views/layouts/header.php';
                 openStationWorkspace(station) {
                     let st = JSON.parse(JSON.stringify(station));
                     st.examiner_id = st.examiner_id || ''; 
+
+                    // NEW: Ensure time limit and score default properly if null
+                    st.time_limit_minutes = st.time_limit_minutes || ''; 
+                    st.score_per_question = st.score_per_question || '';
                     this.stationModal.station = st;
                     this.isEditingInlineQuestion = false;
                     this.stationModal.open = true;

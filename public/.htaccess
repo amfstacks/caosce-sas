@@ -2,7 +2,8 @@
     RewriteEngine On
     
     # 1. NEW RULE: If the request is for the assets directory, STOP. Do not send to index.php!
-    RewriteRule ^assets/ - [L]
+    #RewriteRule ^assets/ - [L]
+    RewriteRule ^(assets|uploads)/ - [L]
     
     # 2. If the file doesn't exist...
     RewriteCond %{REQUEST_FILENAME} !-f

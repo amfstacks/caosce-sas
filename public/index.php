@@ -29,9 +29,15 @@ $router->get('/admin/setup', 'views/admin/device_setup.php');
 // Add this with your Web Routes (Views)
 $router->get('/admin/login', 'views/admin/auth/login.php');
 $router->get('/login', 'views/auth/login.php');
+// --- WEB ROUTES ---
+$router->get('/admin/settings', 'views/admin/settings.php');
 
 
 
+
+// --- API ROUTES ---
+$router->get('/api/admin/school/details', ['AdminSetupController', 'getSchoolDetails']);
+$router->post('/api/admin/school/update', ['AdminSetupController', 'updateSchoolDetails']);
 
 //sessions
 $router->get('/admin/sessions', 'views/admin/sessions/index.php');
@@ -109,6 +115,33 @@ $router->get('/admin/sync', 'views/admin/sync-dashboard.php');
 
 
 $router->get('/exam', 'views/offline-app/master.php');
+
+
+
+
+// --- WEB ROUTES ---
+$router->get('/admin/examiners', 'views/admin/examiners.php');
+
+// --- API ROUTES ---
+$router->get('/api/admin/examiners/list', ['ExaminerController', 'getExaminers']);
+$router->post('/api/admin/examiners/add', ['ExaminerController', 'addExaminer']);
+$router->post('/api/admin/examiners/import', ['ExaminerController', 'importExaminers']);
+$router->post('/api/admin/examiners/update', ['ExaminerController', 'updateExaminer']);
+$router->post('/api/admin/examiners/toggle', ['ExaminerController', 'toggleStatus']);
+$router->post('/api/admin/examiners/delete', ['ExaminerController', 'deleteExaminer']);
+
+
+
+
+
+// --- WEB ROUTES ---
+$router->get('/admin/sync-codes', 'views/admin/sync_codes.php');
+
+// --- API ROUTES ---
+$router->get('/api/admin/sync-codes/list', ['SyncController', 'getCodes']);
+$router->post('/api/admin/sync-codes/create', ['SyncController', 'createCode']);
+$router->post('/api/admin/sync-codes/toggle', ['SyncController', 'toggleStatus']);
+$router->post('/api/admin/sync-codes/delete', ['SyncController', 'deleteCode']);
 
 
 // Dispatch the current request

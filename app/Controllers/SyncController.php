@@ -99,5 +99,78 @@ class SyncController {
             return json_encode(['success' => false, 'message' => 'Failed to write sync data.']);
         }
     }
+
+
+    private function getSchoolId() {
+        if (session_status() === PHP_SESSION_NONE) session_start();
+        return $_SESSION['school_id'] ?? null;
+    }
+
+    // --- FETCH CODES ---
+    public function getCodes($inputData = null) {
+        $schoolId = $this->getSchoolId();
+        if (!$schoolId) return json_encode(['success' => false, 'message' => 'Unauthorized']);
+
+        $this->db->query("SELECT id, code, status, DATE_FORMAT(created_at, '%b %d, %Y - %h:%i %p') as formatted_date FROM sync_codes WHERE school_id = :school_id ORDER BY created_at DESC");
+        $this->db->bind(':school_id', $schoolId);
+        $codes = $this->db->resultSet();
+
+        return json_encode(['success' => true, 'payload' => $codes]);
+    }
+
+    // --- GENERATE NEW CODE ---
+    public function createCode($inputData = null) {
+        $schoolId = $this->getSchoolId();
+        if (!$schoolId) return json_encode(['success' => false, 'message' => 'Unauthorized']);
+
+        // Generate a random 6-character alphanumeric code
+        $isUnique = false;
+        $code = '';
+
+        // Loop ensures the code doesn't already exist in the database (highly unlikely, but safe)
+        while (!$isUnique) {
+            $code = strtoupper(substr(str_shuffle("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"), 0, 6));
+            $this->db->query("SELECT id FROM sync_codes WHERE code = :code");
+            $this->db->bind(':code', $code);
+            if (!$this->db->single()) {
+                $isUnique = true;
+            }
+        }
+
+        $id = UuidHelper::v4();
+        
+        $this->db->query("INSERT INTO sync_codes (id, school_id, code, status) VALUES (:id, :sch, :code, 'active')");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':sch', $schoolId);
+        $this->db->bind(':code', $code);
+
+        if ($this->db->execute()) {
+            return json_encode(['success' => true, 'message' => 'New sync code generated successfully.', 'code' => $code]);
+        }
+        return json_encode(['success' => false, 'message' => 'Failed to generate code.']);
+    }
+
+    // --- TOGGLE STATUS ---
+    public function toggleStatus($inputData) {
+        $id = $inputData['id'] ?? '';
+        $this->db->query("UPDATE sync_codes SET status = IF(status = 'active', 'disabled', 'active') WHERE id = :id AND school_id = :sch");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':sch', $this->getSchoolId());
+        
+        if ($this->db->execute()) return json_encode(['success' => true, 'message' => 'Sync code status updated.']);
+        return json_encode(['success' => false, 'message' => 'Action failed.']);
+    }
+
+    // --- DELETE CODE ---
+    public function deleteCode($inputData) {
+        $id = $inputData['id'] ?? '';
+        
+        $this->db->query("DELETE FROM sync_codes WHERE id = :id AND school_id = :sch");
+        $this->db->bind(':id', $id);
+        $this->db->bind(':sch', $this->getSchoolId());
+        
+        if ($this->db->execute()) return json_encode(['success' => true, 'message' => 'Sync code deleted permanently.']);
+        return json_encode(['success' => false, 'message' => 'Action failed.']);
+    }
 }
 ?>

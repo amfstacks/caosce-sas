@@ -117,5 +117,49 @@ class AuthController {
 
     return json_encode(['success' => false, 'message' => 'School not found or license inactive.']);
 }
+public function validateWorkspace($inputData = null) {
+        // Depending on how your Router passes GET data, we check both $inputData and $_GET
+        $slug = $inputData['slug'] ?? $_GET['slug'] ?? '';
+        $slug = trim(strtolower($slug));
+
+        if (empty($slug)) {
+            return json_encode(['success' => false, 'message' => 'Workspace code is required.']);
+        }
+
+        $this->db->query("SELECT slug, name, license_status FROM schools WHERE slug = :slug LIMIT 1");
+        $this->db->bind(':slug', $slug);
+        $school = $this->db->single();
+
+        if (!$school) {
+            return json_encode([
+                'success' => false, 
+                'message' => "Workspace '" . strtoupper($slug) . "' not found. Please check your code."
+            ]);
+        }
+
+        // Check if the license is active
+        if ($school['license_status'] === 'suspended') {
+            return json_encode([
+                'success' => false, 
+                'message' => 'This workspace is currently suspended. Contact administration.'
+            ]);
+        }
+
+        if ($school['license_status'] === 'expired') {
+            return json_encode([
+                'success' => false, 
+                'message' => 'This workspace license has expired.'
+            ]);
+        }
+
+        // Active and valid!
+        return json_encode([
+            'success' => true,
+            'payload' => [
+                'slug' => $school['slug'],
+                'name' => $school['name']
+            ]
+        ]);
+    }
 }
 ?>

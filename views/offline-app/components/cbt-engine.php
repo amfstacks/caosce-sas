@@ -258,18 +258,29 @@
             restoredSession: false,
             session_id: '',
 
-            async initCbt() {
+           async initCbt() {
+                // 1. Delete the 'navigate' listener. We ONLY listen to 'view-activated'
+                // 2. Delete the direct 'await this.bootCbtSession()' at the bottom.
+                
+                window.addEventListener('view-activated', async (e) => {
+                    if (e.detail === 'cbt') {
+                        await this.bootCbtSession();
+                    }
+                });
+
+                // Fullscreen listener stays
+                document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
+            },
+
+            async bootCbtSession() {
+                this.isLoading = true;
                 const authStr = sessionStorage.getItem('caosce_offline_auth');
                 if (!authStr) {
-                    this.$dispatch('navigate', 'login');
+                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'login' }));
                     return;
                 }
                 this.student = JSON.parse(authStr);
-
                 await this.loadOfflinePayload();
-                
-                // Add specific event listener for this component
-                document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
             },
 
             handleFullscreenChange() {
@@ -311,7 +322,8 @@
                 } catch (error) {
                     console.error("Failed to load exam data:", error);
                     alert("Critical Error: Missing offline exam data.");
-                    this.$dispatch('navigate', 'login');
+                    // this.$dispatch('navigate', 'login');
+                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'login' }));
                 }
             },
 

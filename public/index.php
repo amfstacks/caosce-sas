@@ -18,12 +18,17 @@ require_once APPROOT . '/Core/UuidHelper.php';
 $router = new Router();
 
 $router->get('/api/tenant-info', ['AuthController', 'getTenantInfo']);
+$router->get('/api/workspace/validate', ['AuthController', 'validateWorkspace']);
 
 // --- WEB ROUTES (Views) ---
+$router->get('/landing', 'views/landing.php');
 $router->get('/login', 'views/auth/login.php');
 $router->get('/admin/dashboard', 'views/admin/dashboard.php');
 // $router->get('/admin/sessions', 'views/admin/sessions.php');
 $router->get('/admin/setup', 'views/admin/device_setup.php');
+// Add this with your Web Routes (Views)
+$router->get('/admin/login', 'views/admin/auth/login.php');
+
 
 
 
@@ -46,7 +51,8 @@ $router->get('/examiner/rubric', 'views/examiner/rubric.php');
 $router->post('/api/login', ['AuthController', 'handleLogin']);
 $router->post('/api/sync', ['SyncController', 'handleOfflineData']);
 $router->post('/api/exam/payload', ['ExamController', 'getPayload']);
-
+// Add this with your API Routes
+$router->post('/api/admin/login', ['AuthController', 'handleAdminLogin']);
 
 // The View Route
 

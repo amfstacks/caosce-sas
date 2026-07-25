@@ -91,11 +91,11 @@ include __DIR__ . '/../layouts/header.php';
                 showCacheToast: false,
 
                 async bootUp() {
-                    // 1. Check if device has an offline payload
                     try {
                         const payload = await localforage.getItem('caosce_offline_data');
                         if (payload && payload.station_settings) {
                             this.payloadMeta = payload.station_settings;
+                            console.log(this.payloadMeta);
                         }
                     } catch(e) { console.error("DB Read Error"); }
 
@@ -103,41 +103,85 @@ include __DIR__ . '/../layouts/header.php';
                         this.isAppCached = true;
                     }
 
-                    // 2. Check Auth State
                     const authStr = sessionStorage.getItem('caosce_offline_auth');
-                    
+                    let targetView = 'login'; // Default view
+                    console.log(authStr);
                     if (authStr) {
-                        // Someone is logged in! Route them based on role.
                         const auth = JSON.parse(authStr);
-                        
-                        if (auth.role === 'admin') {
-                            this.currentView = 'sync';
-                        } 
-                        else if (auth.role === 'examiner') {
-                            this.currentView = 'procedure';
-                        } 
+                        if (auth.role === 'admin') targetView = 'sync';
+                        else if (auth.role === 'examiner') targetView = 'procedure';
                         else if (auth.role === 'student') {
-                            // Route based on what type of station this laptop is bound to
-                            this.currentView = (this.payloadMeta && this.payloadMeta.station_type === 'cbt') ? 'cbt' : 'procedure';
+                            targetView = (this.payloadMeta && this.payloadMeta.station_type === 'cbt') ? 'cbt' : 'procedure';
                         }
-                    } else {
-                        // Nobody is logged in. Default to Login screen.
-                        // (The Login screen itself will check if the device is unbound and show the Setup button).
-                        this.currentView = 'login';
                     }
 
-                    // Remove preloader
-                    setTimeout(() => { this.isBooting = false; }, 400);
+                    this.currentView = targetView;
+
+                    setTimeout(() => { 
+                        this.isBooting = false; 
+                        // NEW: Broadcast to all components that the initial view is ready!
+                        console.log(this.currentView);
+                        window.dispatchEvent(new CustomEvent('view-activated', { detail: this.currentView }));
+                    }, 400);
                 },
 
-                // Listens for $dispatch('navigate', 'view_name') from any child component
                 switchView(viewName) {
                     this.isBooting = true;
                     setTimeout(() => {
                         this.currentView = viewName;
                         this.isBooting = false;
-                    }, 300); // Tiny artificial delay to unmount/mount cleanly
+                        // NEW: Broadcast to components when navigating between screens!
+                        window.dispatchEvent(new CustomEvent('view-activated', { detail: viewName }));
+                    }, 300);
                 },
+                // async bootUp() {
+                //     // 1. Check if device has an offline payload
+                //     try {
+                //         const payload = await localforage.getItem('caosce_offline_data');
+                //         if (payload && payload.station_settings) {
+                //             this.payloadMeta = payload.station_settings;
+                //         }
+                //     } catch(e) { console.error("DB Read Error"); }
+
+                //     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                //         this.isAppCached = true;
+                //     }
+
+                //     // 2. Check Auth State
+                //     const authStr = sessionStorage.getItem('caosce_offline_auth');
+                    
+                //     if (authStr) {
+                //         // Someone is logged in! Route them based on role.
+                //         const auth = JSON.parse(authStr);
+                        
+                //         if (auth.role === 'admin') {
+                //             this.currentView = 'sync';
+                //         } 
+                //         else if (auth.role === 'examiner') {
+                //             this.currentView = 'procedure';
+                //         } 
+                //         else if (auth.role === 'student') {
+                //             // Route based on what type of station this laptop is bound to
+                //             this.currentView = (this.payloadMeta && this.payloadMeta.station_type === 'cbt') ? 'cbt' : 'procedure';
+                //         }
+                //     } else {
+                //         // Nobody is logged in. Default to Login screen.
+                //         // (The Login screen itself will check if the device is unbound and show the Setup button).
+                //         this.currentView = 'login';
+                //     }
+
+                //     // Remove preloader
+                //     setTimeout(() => { this.isBooting = false; }, 400);
+                // },
+
+                // // Listens for $dispatch('navigate', 'view_name') from any child component
+                // switchView(viewName) {
+                //     this.isBooting = true;
+                //     setTimeout(() => {
+                //         this.currentView = viewName;
+                //         this.isBooting = false;
+                //     }, 300); // Tiny artificial delay to unmount/mount cleanly
+                // },
                 markAsCached() {
             this.isAppCached = true;
             this.showCacheToast = true;

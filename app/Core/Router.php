@@ -45,7 +45,8 @@ class Router {
             
             // If they just typed "yourschool.com/yag", default them to login
             if ($routePath === '/') {
-                $routePath = '/login';
+                // $routePath = '/login';
+                $routePath = '/landing';
             }
         }
         else {

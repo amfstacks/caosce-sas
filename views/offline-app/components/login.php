@@ -152,6 +152,12 @@
                     this.checkDeviceBinding()
                 ]);
                 this.isInitializing = false;
+                window.addEventListener('navigate', async (e) => {
+                    if (e.detail === 'login') {
+                        // Re-read localforage instantly so the UI reflects the new binding!
+                        await this.checkDeviceBinding();
+                    }
+                });
             },
 
             getBaseApiUrl() {

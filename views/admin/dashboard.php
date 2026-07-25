@@ -219,7 +219,12 @@ include '../views/layouts/header.php';
 
                 logout() {
                     if(confirm("Securely sign out of the Admin panel?")) {
-                        window.location.href = this.getBaseApiUrl() + '/login';
+                        // window.location.href = this.getBaseApiUrl() + '/login';
+                        let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
+                        
+                        // Wait, we need a logout endpoint in the router for this!
+                        // For now, we redirect to login, but we need to build /api/admin/logout
+                        window.location.href = this.getBaseApiUrl() + '/admin/login?logout=1';
                     }
                 }
             }

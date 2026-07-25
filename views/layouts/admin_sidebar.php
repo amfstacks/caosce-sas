@@ -49,10 +49,10 @@ $tenantUrl = BASE_PATH . '/' . (defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT
             <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hardware & Sync</p>
         </div>
 
-        <a href="<?php echo $tenantUrl; ?>/admin/bind-device" 
+        <a href="<?php echo $tenantUrl; ?>/admin/binding-codes" 
            class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 <?php echo $activeMenu === 'devices' ? 'bg-blue-600/10 text-blue-400 font-semibold' : 'hover:bg-slate-800/50 hover:text-white'; ?>">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-            Device Binding
+            Device Binding Codes
         </a>
 
         <a href="<?php echo $tenantUrl; ?>/admin/sync" 

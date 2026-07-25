@@ -35,7 +35,7 @@
                     <a href="#features" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Features</a>
                     <a href="#how-it-works" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">How it Works</a>
                     <!-- Admin Login Link -->
-                    <a href="/admin/login" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white transition-all bg-white/10 hover:bg-white/20 rounded-full ring-1 ring-white/20">
+                    <a href="admin/login" class="inline-flex items-center justify-center px-5 py-2.5 text-sm font-bold text-white transition-all bg-white/10 hover:bg-white/20 rounded-full ring-1 ring-white/20">
                         System Admin
                         <svg class="w-4 h-4 ml-2 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                     </a>

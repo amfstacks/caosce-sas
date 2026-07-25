@@ -31,7 +31,7 @@ class Router {
 
         // We assume any first segment that isn't a core folder/API is a school slug
         // e.g., URL is "yourschool.com/yag/login" -> $segments[0] is 'yag'
-        if (count($segments) > 0 && !in_array($segments[0], ['api', 'superadmin', 'assets','login', 'setup'])) {
+        if (count($segments) > 0 && !in_array($segments[0], ['api', 'superadmin', 'assets','login','admin', 'setup'])) {
             $slug = $segments[0];
             
             // Save the slug as a constant so any Model/Controller can query the DB with it!
@@ -52,6 +52,51 @@ class Router {
         else {
             // NEW: If no slug is found, define it as null safely
             define('CURRENT_TENANT_SLUG', null);
+        }
+
+
+
+
+        // ==========================================
+        // ADMIN MIDDLEWARE FIREWALL
+        // ==========================================
+        // Catch any route that starts with /admin/ or /api/admin/ (except the login pages)
+        if (
+            (strpos($routePath, '/admin/') === 0 && $routePath !== '/admin/login') || 
+            (strpos($routePath, '/api/admin/') === 0 && $routePath !== '/api/admin/login')
+        ) {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
+
+            $isApiRequest = strpos($routePath, '/api/') === 0;
+            $loginUrl = defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT_SLUG !== null 
+                ? '/' . CURRENT_TENANT_SLUG . '/admin/login' 
+                : '/admin/login';
+
+            // Check 1: Are they logged in as an admin?
+            if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true || !in_array($_SESSION['admin_role'], ['superadmin', 'subadmin'])) {
+                if ($isApiRequest) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'message' => 'Unauthorized. Please log in.']);
+                    exit;
+                }
+                header("Location: " . BASE_PATH . $loginUrl);
+                exit;
+            }
+
+            // Check 2: Do they belong to this specific workspace?
+            if (defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT_SLUG !== null) {
+                if (!isset($_SESSION['tenant_slug']) || $_SESSION['tenant_slug'] !== CURRENT_TENANT_SLUG) {
+                    if ($isApiRequest) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['success' => false, 'message' => 'Unauthorized workspace access.']);
+                        exit;
+                    }
+                    header("Location: " . BASE_PATH . '/' . CURRENT_TENANT_SLUG . '/admin/login');
+                    exit;
+                }
+            }
         }
 
         // CRITICAL FIX: Look for $routePath in our routes array, not $uri!

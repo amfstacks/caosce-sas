@@ -91,6 +91,69 @@ class AuthController {
         return json_encode(['success' => false, 'message' => 'Invalid credentials']);
     }
 
+   public function handleAdminLogin($inputData) {
+        // Start session if not already started, so we can securely persist admin state
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $username = trim($inputData['username'] ?? '');
+        $password = $inputData['password'] ?? '';
+
+        if (empty($username) || empty($password)) {
+            return json_encode(['success' => false, 'message' => 'Username and password are required.']);
+        }
+
+        // Fast query: Only look for admins
+        $this->db->query("SELECT * FROM users WHERE username = :username AND role IN ('superadmin', 'subadmin') LIMIT 1");
+        $this->db->bind(':username', $username);
+        $admin = $this->db->single();
+        
+        if ($admin && password_verify($password, $admin['password_hash'])) {
+            
+            $targetSlug = null;
+
+            // 1. If this admin belongs to a specific school, automatically fetch their slug
+            if (!empty($admin['school_id'])) {
+                $this->db->query("SELECT slug FROM schools WHERE id = :school_id LIMIT 1");
+                $this->db->bind(':school_id', $admin['school_id']);
+                $school = $this->db->single();
+
+                if ($school) {
+                    $targetSlug = $school['slug'];
+                }
+
+                // Security Check: If they tried logging into a SPECIFIC workspace url (e.g., /demo2026/admin/login)
+                // but they actually belong to 'yag', we must block them.
+                if (defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT_SLUG !== null && CURRENT_TENANT_SLUG !== $targetSlug) {
+                    return json_encode(['success' => false, 'message' => 'Unauthorized workspace access.']);
+                }
+            }
+
+            // Secure the session for backend dashboard access
+            $_SESSION['admin_logged_in'] = true;
+            $_SESSION['admin_id'] = $admin['id'];
+            $_SESSION['admin_role'] = $admin['role'];
+            $_SESSION['admin_name'] = $admin['full_name'] ?? $admin['username'];
+            $_SESSION['school_id'] = $admin['school_id'];
+            
+            // Optional: Store slug in session to easily build links in the admin dashboard later
+            $_SESSION['tenant_slug'] = $targetSlug;
+
+            // 2. Build the dynamic redirect URL based on the fetched slug
+            // If they have a slug, send them to their branded dashboard. Otherwise, global dashboard.
+            $redirectUrl = $targetSlug ? '/' . $targetSlug . '/admin/dashboard' : '/admin/dashboard';
+
+            return json_encode([
+                'success' => true, 
+                'redirect_url' => $redirectUrl,
+                'slug' => $targetSlug // Returning the slug just in case the JS needs it
+            ]);
+        }
+
+        return json_encode(['success' => false, 'message' => 'Invalid admin credentials.']);
+    }
+
     public function getTenantInfo($inputData = null) {
     if (!defined('CURRENT_TENANT_SLUG') || CURRENT_TENANT_SLUG === null) {
         return json_encode(['success' => false, 'message' => 'No workspace specified.']);

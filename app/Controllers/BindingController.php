@@ -204,6 +204,18 @@ class BindingController {
         }
 
         try {
+
+        $this->db->query("SELECT status FROM exam_sessions WHERE id = :session_id LIMIT 1");
+            $this->db->bind(':session_id', $sessionId);
+            $sessionCheck = $this->db->single();
+
+            if (!$sessionCheck) {
+                return json_encode(['success' => false, 'message' => 'Session not found.']);
+            }
+            if ($sessionCheck['status'] !== 'active') {
+                return json_encode(['success' => false, 'message' => 'Cannot provision device: This examination session is not currently active.']);
+            }
+            
             // A. Fetch Station Settings
             $this->db->query("SELECT * FROM stations WHERE id = :station_id");
             $this->db->bind(':station_id', $stationId);

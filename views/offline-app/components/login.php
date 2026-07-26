@@ -120,7 +120,40 @@
     <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
     Hardware Provisioning Setup
 </button>
+<button type="button" @click="syncModalOpen = true" class="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-slate-400 hover:text-amber-600 transition-colors group ml-4">
+    <svg class="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+    Admin Sync Monitor
+</button>
             </div>
+
+
+            <!-- Secure Sync Code Modal -->
+<div x-show="syncModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm" style="display: none;">
+    <div @click.outside="syncModalOpen = false" class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden border border-slate-200">
+        <div class="bg-slate-50 border-b border-slate-100 p-6 text-center">
+            <div class="mx-auto w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center mb-3">
+                <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800">Admin Sync Access</h3>
+            <p class="text-xs text-slate-500 mt-1">Enter your 6-digit administrative sync code to access the secure data command center.</p>
+        </div>
+        <form @submit.prevent="verifySyncCode" class="p-6">
+            <div class="mb-4">
+                <input type="text" x-model="syncCodeInput" required maxlength="6" class="w-full text-center text-2xl tracking-widest font-mono font-bold uppercase rounded-lg border border-slate-300 px-4 py-3 focus:border-amber-500 focus:ring-1 focus:ring-amber-500" placeholder="XXXXXX">
+            </div>
+            
+            <div x-show="syncErrorMessage" class="mb-4 text-xs font-bold text-red-600 text-center bg-red-50 py-2 rounded-lg" x-text="syncErrorMessage" style="display: none;"></div>
+
+            <div class="flex flex-col gap-2">
+                <button type="submit" :disabled="isVerifyingSync || syncCodeInput.length < 6" class="w-full px-5 py-3 rounded-lg text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 disabled:opacity-50 transition-colors inline-flex justify-center items-center gap-2">
+                    <svg x-show="isVerifyingSync" class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <span x-text="isVerifyingSync ? 'Verifying...' : 'Access Sync Portal'"></span>
+                </button>
+                <button type="button" @click="syncModalOpen = false; syncCodeInput = ''; syncErrorMessage = ''" class="w-full px-5 py-3 rounded-lg text-sm font-bold text-slate-600 hover:bg-slate-100 transition-colors">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
             
         </div>
     </div>
@@ -136,6 +169,10 @@
             isLoading: false,
             isInitializing: true,
             schoolData: { name: '', logo_path: '', cover_image_path: '' },
+            syncModalOpen: false,
+                syncCodeInput: '',
+                isVerifyingSync: false,
+                syncErrorMessage: '',
             
             deviceState: {
                 isBound: false,
@@ -303,7 +340,40 @@
                 } finally {
                     this.isLoading = false;
                 }
-            }
+            },
+            async verifySyncCode() {
+                    this.isVerifyingSync = true;
+                    this.syncErrorMessage = '';
+                    
+                    if (!navigator.onLine) {
+                        this.syncErrorMessage = "Must be online to verify code.";
+                        this.isVerifyingSync = false;
+                        return;
+                    }
+
+                    try {
+                        let response = await fetch(this.getBaseApiUrl() + '/api/sync/verify-code', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: this.syncCodeInput })
+                        });
+                        let data = await response.json();
+                        
+                        if (data.success) {
+                            // Assign admin role to bypass normal login, dispatch event, and reset modal
+                            sessionStorage.setItem('caosce_offline_auth', JSON.stringify({ role: 'admin' }));
+                            this.syncModalOpen = false;
+                            this.syncCodeInput = '';
+                            window.dispatchEvent(new CustomEvent('navigate', { detail: 'sync' }));
+                        } else {
+                            this.syncErrorMessage = data.message || "Verification failed.";
+                        }
+                    } catch (e) {
+                        this.syncErrorMessage = "Network error connecting to server.";
+                    } finally {
+                        this.isVerifyingSync = false;
+                    }
+                }
         }
     }
 </script>

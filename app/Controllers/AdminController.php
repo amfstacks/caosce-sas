@@ -258,5 +258,57 @@ class AdminController {
             return json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
         }
     }
+
+    public function getSessionResults($inputData = null) {
+        $sessionId = $_GET['id'] ?? '';
+        if (!$sessionId) return json_encode(['success' => false, 'message' => 'No session ID']);
+
+        // 1. Fetch Ordered Stations
+        $this->db->query("SELECT id, order_sequence, title, station_type FROM stations WHERE exam_session_id = :id ORDER BY order_sequence ASC");
+        $this->db->bind(':id', $sessionId);
+        $stations = $this->db->resultSet();
+
+        // 2. Fetch Students and their synchronized scores from `station_scores`
+        $this->db->query("
+            SELECT 
+                s.id as student_id, s.matric_number, s.full_name,
+                ss.station_id, ss.total_score
+            FROM exam_session_student ess
+            JOIN students s ON ess.student_id = s.id
+            LEFT JOIN station_scores ss ON ss.student_id = s.id AND ss.exam_session_id = :sess_id
+            WHERE ess.exam_session_id = :sess_id
+            ORDER BY s.matric_number ASC
+        ");
+        $this->db->bind(':sess_id', $sessionId);
+        $rawRecords = $this->db->resultSet();
+
+        // 3. Format into a clean, flat array mapped by student
+        $studentsMap = [];
+        foreach($rawRecords as $row) {
+            $sid = $row['student_id'];
+            if(!isset($studentsMap[$sid])) {
+                $studentsMap[$sid] = [
+                    'student_id' => $sid,
+                    'matric' => $row['matric_number'],
+                    'name' => $row['full_name'],
+                    'scores' => [],
+                    'total' => 0
+                ];
+            }
+            if ($row['station_id']) {
+                $score = (float)$row['total_score'];
+                $studentsMap[$sid]['scores'][$row['station_id']] = $score;
+                $studentsMap[$sid]['total'] += $score;
+            }
+        }
+
+        return json_encode([
+            'success' => true,
+            'payload' => [
+                'stations' => $stations,
+                'results' => array_values($studentsMap)
+            ]
+        ]);
+    }
 }
 ?>

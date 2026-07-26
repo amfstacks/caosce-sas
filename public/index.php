@@ -142,6 +142,21 @@ $router->get('/api/admin/sync-codes/list', ['SyncController', 'getCodes']);
 $router->post('/api/admin/sync-codes/create', ['SyncController', 'createCode']);
 $router->post('/api/admin/sync-codes/toggle', ['SyncController', 'toggleStatus']);
 $router->post('/api/admin/sync-codes/delete', ['SyncController', 'deleteCode']);
+$router->post('/api/sync/verify-code', ['SyncController', 'verifyCode']);
+
+
+
+$router->get('/api/admin/session-results', ['AdminController', 'getSessionResults']);
+
+
+
+// --- WEB ROUTES ---
+$router->get('/admin/departments', 'views/admin/departments.php');
+
+// --- API ROUTES ---
+$router->get('/api/admin/departments/list', ['DepartmentController', 'getDepartments']);
+$router->post('/api/admin/departments/add', ['DepartmentController', 'addDepartment']);
+$router->post('/api/admin/departments/toggle', ['DepartmentController', 'toggleStatus']);
 
 
 // Dispatch the current request

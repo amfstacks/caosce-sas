@@ -172,5 +172,31 @@ class SyncController {
         if ($this->db->execute()) return json_encode(['success' => true, 'message' => 'Sync code deleted permanently.']);
         return json_encode(['success' => false, 'message' => 'Action failed.']);
     }
+
+    // --- VERIFY SYNC CODE FROM LAPTOP ---
+    public function verifyCode($inputData) {
+        $code = strtoupper(trim($inputData['code'] ?? ''));
+        $slug = defined('CURRENT_TENANT_SLUG') ? CURRENT_TENANT_SLUG : null;
+
+        if (empty($code) || !$slug) {
+            return json_encode(['success' => false, 'message' => 'Invalid request.']);
+        }
+
+        // Check if the code is active and belongs to the correct school
+        $this->db->query("
+            SELECT sc.id 
+            FROM sync_codes sc 
+            JOIN schools s ON sc.school_id = s.id 
+            WHERE sc.code = :code AND sc.status = 'active' AND s.slug = :slug
+        ");
+        $this->db->bind(':code', $code);
+        $this->db->bind(':slug', $slug);
+        
+        if ($this->db->single()) {
+            return json_encode(['success' => true]);
+        }
+
+        return json_encode(['success' => false, 'message' => 'Invalid or disabled sync code.']);
+    }
 }
 ?>

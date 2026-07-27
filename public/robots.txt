@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /setup/
+
+Sitemap: https://caosce.com/sitemap.xml

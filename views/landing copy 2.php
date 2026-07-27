@@ -4,33 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CAOSCE | Unbreakable Offline Clinical Examinations</title>
-
-    
-    <meta name="description" content="CAOSCE is the enterprise-grade, offline-first examination portal built for Nursing, Midwifery, and high-stakes clinical OSCE procedures. Conduct flawless exams with zero downtime.">
-    <meta name="keywords" content="OSCE software, clinical examination platform, nursing exam software, offline CBT, objective structured clinical examination, medical testing portal">
-    <meta name="author" content="CAOSCE Systems">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://caosce.com/">
-
-    <!-- Open Graph (Facebook, LinkedIn, Slack) -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://caosce.com/">
-    <meta property="og:title" content="CAOSCE | Unbreakable Offline Clinical Examinations">
-    <meta property="og:description" content="The enterprise-grade offline examination portal built for Nursing and Midwifery schools. Conduct flawless exams with zero internet required.">
-    <meta property="og:image" content="https://caosce.com/public/assets/social-preview.jpg">
-    <meta property="og:site_name" content="CAOSCE">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:url" content="https://caosce.com/">
-    <meta name="twitter:title" content="CAOSCE | Unbreakable Offline Clinical Examinations">
-    <meta name="twitter:description" content="The enterprise-grade offline examination portal built for Nursing and Midwifery schools. Conduct flawless exams with zero internet required.">
-    <meta name="twitter:image" content="https://caosce.com/public/assets/social-preview.jpg">
-
-    <!-- Favicon Suite -->
-    <link rel="icon" type="image/png" sizes="32x32" href="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/public/assets/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/public/assets/favicon-16x16.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/public/assets/apple-touch-icon.png">
     <!-- Alpine.js & Tailwind -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,29 +25,6 @@
         }
         [x-cloak] { display: none !important; }
     </style>
-
-    <!-- JSON-LD Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "CAOSCE",
-      "operatingSystem": "Windows, Web",
-      "applicationCategory": "EducationalApplication",
-      "description": "An offline-first clinical examination and OSCE portal designed for Nursing and Midwifery schools to conduct secure, tamper-proof assessments.",
-      "url": "https://caosce.com",
-      "publisher": {
-        "@type": "Organization",
-        "name": "Ajala Mayowa Felix Amfstacks"
-      },
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "NGN",
-        "availability": "https://schema.org/OnlineOnly"
-      }
-    }
-    </script>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white" x-data="landingController()">
 
@@ -133,7 +83,7 @@
                     The Standard in Clinical Assessments
                 </div>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1] mb-6">
-                    Flawless  Exams. <br/>
+                    Flawless Exams. <br/>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Zero Downtime. 100% Offline-First.</span>
                 </h1>
                 <p class="text-lg text-slate-300 font-medium mb-8 leading-relaxed max-w-lg">
@@ -214,7 +164,7 @@
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative group hover:shadow-md transition-shadow">
                     <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mb-6 font-black text-xl">3</div>
                     <h4 class="text-xl font-bold text-slate-900 mb-3">Execute Offline</h4>
-                    <p class="text-slate-600 text-sm leading-relaxed">Exams run 100% offline. Zero latency, no server crashes, immune to Wi-Fi drops.</p>
+                    <p class="text-slate-600 text-sm leading-relaxed">Exams run 100% offline via local device memory. Zero latency, no server crashes, immune to Wi-Fi drops.</p>
                 </div>
                 <!-- Step 4 -->
                 <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 relative group hover:shadow-md transition-shadow">
@@ -268,12 +218,12 @@
                 <div class="relative">
                     <div class="rounded-3xl overflow-hidden shadow-2xl ring-1 ring-slate-900/5 aspect-[4/3] relative bg-slate-100">
                         <!-- Clinical setting photo -->
-                        <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop" alt="Clinical examination dashboard" class="object-cover w-full h-full">
+                        <img src="https://images.unsplash.com/photo-1551076805-e18690c5e404?q=80&w=2069&auto=format&fit=crop" alt="Clinical examination dashboard" class="object-cover w-full h-full">
                         <div class="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent"></div>
                     </div>
                     
                     <!-- Floating Stat Card -->
-                    <div class="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl ring-1 ring-slate-900/5 border border-slate-100 animate-bounce" style="animation-duration: 3s;">
+                    <div class="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl ring-1 ring-slate-900/5 border border-slate-100">
                         <div class="flex items-center gap-4">
                             <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600">
                                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>

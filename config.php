@@ -29,7 +29,7 @@ if ($is_local) {
 
 // App Constants
 define('APPROOT', dirname(__FILE__) . '/app');
-define('URLROOT', 'https://caosce.com');
+// define('URLROOT', 'https://caosce.com');
 define('APP_NAME', 'CaOSCE');
 define('APP_CAPTION', 'Clinical & Objective Structured Examination Environment');
 define('APP_LOGO_PATH', '/assets/img/default-logo.png');

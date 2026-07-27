@@ -83,7 +83,7 @@
                     The Standard in Clinical Assessments
                 </div>
                 <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1] mb-6">
-                    Flawless Exams. <br/>
+                    Flawless  Exams. <br/>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-white">Zero Downtime. 100% Offline-First.</span>
                 </h1>
                 <p class="text-lg text-slate-300 font-medium mb-8 leading-relaxed max-w-lg">

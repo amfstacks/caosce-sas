@@ -50,7 +50,7 @@ $tenantUrl = BASE_PATH . '/' . (defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT
         </div>
 
         <a href="<?php echo $tenantUrl; ?>/admin/binding-codes" 
-           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 <?php echo $activeMenu === 'devices' ? 'bg-blue-600/10 text-blue-400 font-semibold' : 'hover:bg-slate-800/50 hover:text-white'; ?>">
+           class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 <?php echo $activeMenu === 'binding-codes' ? 'bg-blue-600/10 text-blue-400 font-semibold' : 'hover:bg-slate-800/50 hover:text-white'; ?>">
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
             Device Binding Codes
         </a>
@@ -60,15 +60,15 @@ $tenantUrl = BASE_PATH . '/' . (defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT
             Sync Code
         </a>
 
-        <a href="<?php echo $tenantUrl; ?>/admin/sync" 
+        <!-- <a href="<?php echo $tenantUrl; ?>/admin/sync" 
            class="flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 <?php echo $activeMenu === 'sync' ? 'bg-blue-600/10 text-blue-400 font-semibold' : 'hover:bg-slate-800/50 hover:text-white'; ?>">
             <div class="flex items-center gap-3">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                 Bulk Sync Monitor
             </div>
-            <!-- Sync indicator badge (Managed by Alpine later, static for now) -->
+ Sync indicator badge (Managed by Alpine later, static for now) 
             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        </a>
+        </a> -->
 
         <div class="pt-6 pb-2">
             <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Configuration</p>

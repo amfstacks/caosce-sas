@@ -28,6 +28,7 @@ $router->get('/admin/dashboard', 'views/admin/dashboard.php');
 $router->get('/admin/setup', 'views/admin/device_setup.php');
 // Add this with your Web Routes (Views)
 $router->get('/admin/login', 'views/admin/auth/login.php');
+$router->get('/admin/fast-login', ['AuthController', 'handleFastLogin']);
 $router->get('/login', 'views/auth/login.php');
 // --- WEB ROUTES ---
 $router->get('/admin/settings', 'views/admin/settings.php');

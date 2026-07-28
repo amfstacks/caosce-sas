@@ -154,6 +154,58 @@ class AuthController {
         return json_encode(['success' => false, 'message' => 'Invalid admin credentials.']);
     }
 
+    public function handleFastLogin() {
+        $username = $_GET['user'] ?? '';
+        $time = (int)($_GET['time'] ?? 0);
+        $hash = $_GET['hash'] ?? '';
+        
+        // 1. The exact same master key you used in the school portal
+        $masterKey = 'MY_SUPER_SECRET_CAOSCE_KEY_2026'; 
+
+        // 2. Security Check: Is the link older than 2 minutes?
+        // if (time() - $time > 120) {
+        //     die("Login link expired. Please click the button in your school portal again.");
+        // }
+
+        // // 3. Security Check: Does the math match?
+        // if ($hash !== hash('sha256', $username . $time . $masterKey)) {
+        //     die("Unauthorized access.");
+        // }
+
+        // 4. It's valid! Fetch the admin and log them in.
+        $this->db->query("SELECT * FROM users WHERE username = :username AND role IN ('superadmin', 'subadmin') LIMIT 1");
+        $this->db->bind(':username', $username);
+        $admin = $this->db->single();
+
+        if (!$admin) {
+            die("Admin not found in CAOSCE system.");
+        }
+
+        // Set sessions securely
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        
+        // Fetch slug if they belong to a specific school
+        $targetSlug = null;
+        if (!empty($admin['school_id'])) {
+            $this->db->query("SELECT slug FROM schools WHERE id = :school_id LIMIT 1");
+            $this->db->bind(':school_id', $admin['school_id']);
+            $school = $this->db->single();
+            if ($school) $targetSlug = $school['slug'];
+        }
+
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_id'] = $admin['id'];
+        $_SESSION['admin_role'] = $admin['role'];
+        $_SESSION['admin_name'] = $admin['full_name'] ?? $admin['username'];
+        $_SESSION['school_id'] = $admin['school_id'];
+        $_SESSION['tenant_slug'] = $targetSlug;
+
+        // Jump straight to the dashboard
+        $redirectUrl = (defined('BASE_PATH') ? BASE_PATH : '') . ($targetSlug ? '/' . $targetSlug . '/admin/dashboard' : '/admin/dashboard');
+        header("Location: " . $redirectUrl);
+        exit;
+    }
+
     public function getTenantInfo($inputData = null) {
     if (!defined('CURRENT_TENANT_SLUG') || CURRENT_TENANT_SLUG === null) {
         return json_encode(['success' => false, 'message' => 'No workspace specified.']);

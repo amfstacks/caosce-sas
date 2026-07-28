@@ -82,7 +82,7 @@
             <!-- Offline Login Form -->
             <form @submit.prevent="submitLogin" class="space-y-5">
                 <div>
-                    <label for="username" class="block text-sm font-semibold leading-6 text-slate-900">Matric / Admin / Examiner ID</label>
+                    <label for="username" class="block text-sm font-semibold leading-6 text-slate-900">Matric / Examiner ID</label>
                     <div class="mt-1">
                         <input type="text" id="username" x-model="formData.username" required autocomplete="username" class="block w-full rounded-lg border-slate-300 py-3 px-4 text-slate-900 shadow-sm focus:ring-2 focus:ring-blue-600 focus:border-blue-600 sm:text-sm border bg-slate-50 transition-colors">
                     </div>

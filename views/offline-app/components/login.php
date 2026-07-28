@@ -224,7 +224,7 @@
                 }
             },
 
-            async loadTenantData() {
+            async loadTenantData_old_working_local() {
                 const cacheKey = 'caosce_school_cache_' + TENANT_SLUG;
                 const cachedData = localStorage.getItem(cacheKey);
 
@@ -242,6 +242,50 @@
                             localStorage.setItem(cacheKey, JSON.stringify(data.payload));
                         }
                     } catch (error) { console.log('Offline: Using default tenant branding.'); }
+                }
+            },
+            async loadTenantData() {
+                const cacheKey = 'caosce_school_cache_' + TENANT_SLUG;
+                const cachedData = localStorage.getItem(cacheKey);
+
+                if (cachedData) {
+                    this.schoolData = JSON.parse(cachedData);
+                    // Do not return here yet, we still want to update the cache in the background if online
+                }
+
+                if (navigator.onLine) {
+                    try {
+                        let response = await fetch(this.getBaseApiUrl() + '/api/tenant-info');
+                        let data = await response.json();
+                        if (data.success) {
+                            this.schoolData = data.payload;
+                            localStorage.setItem(cacheKey, JSON.stringify(data.payload));
+
+                            // ==========================================
+                            // NEW: FORCE CACHE THE ACTUAL IMAGE FILES
+                            // ==========================================
+                            if ('caches' in window) {
+                                try {
+                                    const cache = await caches.open('caosce-dynamic-images-v1');
+                                    const imagesToCache = [];
+                                    
+                                    if (data.payload.logo_path) imagesToCache.push(data.payload.logo_path);
+                                    if (data.payload.cover_image_path) imagesToCache.push(data.payload.cover_image_path);
+                                    
+                                    // Add the fallback Unsplash image just in case!
+                                    imagesToCache.push('https://images.unsplash.com/photo-1579684385127-1ef15d508118?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80');
+
+                                    if (imagesToCache.length > 0) {
+                                        await cache.addAll(imagesToCache);
+                                    }
+                                } catch (cacheErr) {
+                                    console.error('Failed to cache images for offline use:', cacheErr);
+                                }
+                            }
+                        }
+                    } catch (error) { 
+                        console.log('Offline: Using default tenant branding.'); 
+                    }
                 }
             },
 

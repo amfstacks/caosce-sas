@@ -61,8 +61,15 @@ class Router {
         // ADMIN MIDDLEWARE FIREWALL
         // ==========================================
         // Catch any route that starts with /admin/ or /api/admin/ (except the login pages)
+        // if (
+        //     (strpos($routePath, '/admin/') === 0 && $routePath !== '/admin/login') || 
+        //     (strpos($routePath, '/api/admin/') === 0 && $routePath !== '/api/admin/login')
+        // ) {
+        //     if (session_status() === PHP_SESSION_NONE) {
+        //         session_start();
+        //     }
         if (
-            (strpos($routePath, '/admin/') === 0 && $routePath !== '/admin/login') || 
+            (strpos($routePath, '/admin/') === 0 && !in_array($routePath, ['/admin/login', '/admin/fast-login'])) || 
             (strpos($routePath, '/api/admin/') === 0 && $routePath !== '/api/admin/login')
         ) {
             if (session_status() === PHP_SESSION_NONE) {

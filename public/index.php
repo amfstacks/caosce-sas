@@ -160,6 +160,12 @@ $router->post('/api/admin/departments/add', ['DepartmentController', 'addDepartm
 $router->post('/api/admin/departments/toggle', ['DepartmentController', 'toggleStatus']);
 
 
+
+
+// --- SITEMAP ROUTE ---
+$router->get('/sitemap.xml', 'views/sitemap.php');
+
+
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];

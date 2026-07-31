@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CAOSCE | Unbreakable Offline Clinical Examinations</title>
 
-    
+    <meta name="google-site-verification" content="FahBVZQWUuCOuvqXtuIgZVu_knZYN1SiKAl76dj_MKM" />
     <meta name="description" content="CAOSCE is the enterprise-grade, offline-first examination portal built for Nursing, Midwifery, and high-stakes clinical OSCE procedures. Conduct flawless exams with zero downtime.">
     <meta name="keywords" content="OSCE software, clinical examination platform, nursing exam software, offline CBT, objective structured clinical examination, medical testing portal">
     <meta name="author" content="CAOSCE Systems">

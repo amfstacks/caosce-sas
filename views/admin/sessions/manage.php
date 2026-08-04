@@ -551,7 +551,8 @@ include '../views/layouts/header.php';
                         this.studentModal.data = { ...student };
                     } else {
                         this.studentModal.isEditing = false;
-                        this.studentModal.data = { id: null, matric: '', name: '', password:  Math.random().toString(36).substr(2, 4) };
+                        // this.studentModal.data = { id: null, matric: '', name: '', password:  Math.random().toString(36).substr(2, 4) };
+                        this.studentModal.data = { id: null, matric: '', name: '', password: Math.floor(Math.random() * 10000).toString().padStart(4, '0') };
                     }
                     this.studentModal.open = true;
                 },

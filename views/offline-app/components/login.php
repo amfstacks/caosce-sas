@@ -6,7 +6,7 @@
         <p class="text-white font-medium animate-pulse">Initializing Exam Environment...</p>
     </div>
 
-    <div class="hidden md:flex md:w-1/2 lg:w-3/5 relative bg-slate-900 overflow-hidden">
+    <div class="hidden md:flex md:w-1/2 relative bg-slate-900 overflow-hidden">
         <div class="absolute inset-0 bg-cover bg-center transition-all duration-700 ease-in-out transform scale-105"
              :style="schoolData.cover_image_path 
                 ? 'background-image: url(' + schoolData.cover_image_path + ')' 
@@ -21,9 +21,9 @@
         </div>
     </div>
 
-    <div class="w-full md:w-1/2 lg:w-2/5 flex flex-col items-center justify-center p-8 sm:p-12 bg-white relative shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-10">
+    <div class="w-full md:w-1/2  flex flex-col items-center justify-center p-8 sm:p-12 bg-white relative shadow-[-10px_0_30px_rgba(0,0,0,0.05)] z-10">
         
-        <div class="w-full max-w-md" x-show="!isInitializing" x-transition.opacity.duration.500ms>
+        <div class="w-full max-w-lg" x-show="!isInitializing" x-transition.opacity.duration.500ms>
             
             <div class="flex flex-col items-center text-center mb-8">
                 <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-4 overflow-hidden ring-1 ring-slate-200 shadow-sm">

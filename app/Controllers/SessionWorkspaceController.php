@@ -560,11 +560,17 @@ class SessionWorkspaceController {
         }
 
         // Map column indices dynamically to be foolproof
+        // $headerMap = [];
+        // foreach ($header as $index => $col) {
+        //     $headerMap[strtolower(trim($col))] = $index;
+        // }
+
         $headerMap = [];
         foreach ($header as $index => $col) {
-            $headerMap[strtolower(trim($col))] = $index;
+            // Strip hidden UTF-8 BOM characters that Excel adds to the first column
+            $cleanCol = preg_replace('/^\xEF\xBB\xBF/', '', $col);
+            $headerMap[strtolower(trim($cleanCol))] = $index;
         }
-
         // STRICT HEADER VALIDATION BASED ON STATION TYPE
         if ($isCbt) {
             $requiredHeaders = ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'correct_answer'];

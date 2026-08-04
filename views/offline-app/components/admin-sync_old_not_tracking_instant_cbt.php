@@ -204,7 +204,7 @@
                                         <template x-if="student.hasSubmission && student.status !== 'syncing'">
                                             <div class="flex gap-2">
                                                 
-                                                <button @click="resetAttempt(student.id)" title="Delete submission to allow retake" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded border border-red-200 transition-colors">
+                                                <button @click="NS/2026/0031(student.id)" title="Delete submission to allow retake" class="px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-50 rounded border border-red-200 transition-colors">
                                                     Reset Attempt
                                                 </button>
 

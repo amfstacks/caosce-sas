@@ -87,7 +87,7 @@ if (isset($_GET['logout']) && $_GET['logout'] == 1) {
             </form>
             
             <div class="mt-8 text-center border-t border-slate-700/50 pt-6">
-                <a href="<?php echo defined('CURRENT_TENANT_SLUG') ? '/' . CURRENT_TENANT_SLUG . '/login' : '/landing'; ?>" class="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2">
+                <a href="https://caosce.com/" class="text-sm font-medium text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-2">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     Return to Portal
                 </a>

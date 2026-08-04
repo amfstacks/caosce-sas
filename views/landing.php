@@ -99,11 +99,10 @@
                 <div class="hidden md:flex items-center space-x-8">
                     <a href="#how-it-works" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">How it Works</a>
                     <a href="#features" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Features</a>
-                    <button @click="modals.contact = true" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Contact Us</button>
-                    
+                    <button @click="$dispatch('open-contact')" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Contact Us</button>
                     <div class="h-5 w-px bg-slate-700"></div>
 
-                    <button @click="modals.request = true" class="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors">Request Access</button>
+<button @click="$dispatch('open-request')" class="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors">Request Access</button>
                     
                     <!-- Admin Login Link -->
                     <a href="admin/login" class="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-white transition-all bg-white/10 hover:bg-white/20 rounded-full ring-1 ring-white/20">
@@ -140,8 +139,7 @@
                     The enterprise-grade offline examination portal built specifically for Nursing, Midwifery, and high-stakes clinical OSCE procedures. Secure, tamper-proof, and seamlessly synchronized.
                 </p>
                 <div class="flex flex-wrap gap-4">
-                    <button @click="modals.request = true" class="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95">
-                        Register Your Institution
+                    <button @click="$dispatch('open-request')" class="px-8 py-3.5 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition-all active:scale-95">   Register Your Institution
                     </button>
                     <a href="#how-it-works" class="px-8 py-3.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl ring-1 ring-white/20 transition-all backdrop-blur-sm">
                         See How it Works
@@ -296,8 +294,7 @@
         <div class="max-w-4xl mx-auto px-6 text-center">
             <h2 class="text-3xl font-extrabold text-white mb-4">Ready to modernize your institution's exams?</h2>
             <p class="text-blue-100 mb-8 text-lg">Join leading nursing and midwifery schools using CAOSCE to deliver flawless practical assessments.</p>
-            <button @click="modals.request = true" class="bg-white text-blue-600 font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-slate-50 transition-colors active:scale-95">
-                Request a Demo & Access
+           <button @click="$dispatch('open-request')" class="bg-white text-blue-600 font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-slate-50 transition-colors active:scale-95"> Request a Demo & Access
             </button>
         </div>
     </div>
@@ -314,7 +311,7 @@
                 <span class="text-xl font-extrabold text-white tracking-tight">CAOSCE</span>
             </div>
             <div class="flex gap-6 text-sm text-slate-500 font-medium">
-                <button @click="modals.contact = true" class="hover:text-slate-300 transition-colors">Contact Support</button>
+               <button @click="$dispatch('open-contact')" class="hover:text-slate-300 transition-colors">Contact Support</button>
                 <a href="#" class="hover:text-slate-300 transition-colors">Privacy Policy</a>
                 <a href="#" class="hover:text-slate-300 transition-colors">Terms of Service</a>
             </div>
@@ -323,97 +320,7 @@
     </footer>
 
 
-    <!-- ========================================== -->
-    <!-- MODALS (Teleported to body)                -->
-    <!-- ========================================== -->
-
-    <!-- Contact Us Modal -->
-    <div x-show="modals.contact" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div @click.outside="modals.contact = false" class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
-            <div class="px-6 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 class="text-xl font-bold text-slate-800">Contact Support</h3>
-                <button @click="modals.contact = false" class="text-slate-400 hover:text-slate-600 bg-white p-2 rounded-full shadow-sm"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            </div>
-            <form @submit.prevent="submitContact" class="p-6 space-y-4">
-                <div x-show="formStatus.contact === 'success'" class="bg-green-50 text-green-700 p-4 rounded-xl text-sm font-bold border border-green-200">
-                    Message sent successfully! Our team will reach out shortly.
-                </div>
-                <div x-show="formStatus.contact !== 'success'">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Full Name</label>
-                        <input type="text" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all">
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Email Address</label>
-                        <input type="email" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all">
-                    </div>
-                    <div class="mt-4">
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Message</label>
-                        <textarea required rows="4" class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all resize-none"></textarea>
-                    </div>
-                    <button type="submit" :disabled="formStatus.contact === 'loading'" class="w-full mt-6 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-6 rounded-xl transition-all disabled:opacity-70 flex justify-center items-center gap-2">
-                        <span x-text="formStatus.contact === 'loading' ? 'Sending...' : 'Send Message'"></span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Request Access Modal -->
-    <div x-show="modals.request" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-        <div @click.outside="modals.request = false" class="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all">
-            <div class="px-6 py-6 border-b border-slate-100 flex justify-between items-center bg-blue-600 text-white">
-                <div>
-                    <h3 class="text-xl font-bold">Request Institution Access</h3>
-                    <p class="text-blue-100 text-xs mt-1">Get your school set up on CAOSCE</p>
-                </div>
-                <button @click="modals.request = false" class="text-blue-100 hover:text-white bg-blue-700 p-2 rounded-full"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg></button>
-            </div>
-            <form @submit.prevent="submitRequest" class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                <div x-show="formStatus.request === 'success'" class="bg-blue-50 text-blue-700 p-4 rounded-xl text-sm font-bold border border-blue-200">
-                    Application received! Our onboarding team will review your institution details and contact you to provision your workspace.
-                </div>
-                <div x-show="formStatus.request !== 'success'" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Institution Name</label>
-                        <input type="text" required placeholder="e.g. College of Nursing Sciences" class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-1.5">Contact Person</label>
-                            <input type="text" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-1.5">Official Role</label>
-                            <select required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all bg-white">
-                                <option value="">Select role...</option>
-                                <option>Provost / Dean</option>
-                                <option>Head of Department</option>
-                                <option>Chief Examiner</option>
-                                <option>IT Administrator</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Official Email</label>
-                        <input type="email" required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-1.5">Estimated Student Capacity</label>
-                        <select required class="w-full rounded-xl border border-slate-300 px-4 py-3 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm outline-none transition-all bg-white">
-                            <option value="">Select size...</option>
-                            <option>Under 100 students</option>
-                            <option>100 - 500 students</option>
-                            <option>500+ students</option>
-                        </select>
-                    </div>
-                    <button type="submit" :disabled="formStatus.request === 'loading'" class="w-full mt-6 bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-6 rounded-xl transition-all disabled:opacity-70 flex justify-center items-center gap-2 shadow-lg shadow-blue-600/20">
-                        <span x-text="formStatus.request === 'loading' ? 'Submitting Application...' : 'Submit Request'"></span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+ <?php include __DIR__ . '/partials/modals.php'; ?>
 
 
     <!-- ========================================== -->
@@ -427,16 +334,7 @@
                 errorMessage: '',
                 scrolled: false,
                 
-                // UI State for Modals
-                modals: {
-                    contact: false,
-                    request: false
-                },
-                
-                formStatus: {
-                    contact: 'idle', // idle, loading, success
-                    request: 'idle'
-                },
+
 
                 formatSlug() {
                     this.workspaceSlug = this.workspaceSlug.toUpperCase().replace(/\s+/g, '');

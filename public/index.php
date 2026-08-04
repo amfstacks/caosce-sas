@@ -22,6 +22,7 @@ $router->get('/api/workspace/validate', ['AuthController', 'validateWorkspace'])
 
 // --- WEB ROUTES (Views) ---
 $router->get('/landing', 'views/landing.php');
+$router->get('/clinical-osce-software', 'views/features.php');
 
 $router->get('/admin/dashboard', 'views/admin/dashboard.php');
 // $router->get('/admin/sessions', 'views/admin/sessions.php');
@@ -160,6 +161,10 @@ $router->post('/api/admin/departments/add', ['DepartmentController', 'addDepartm
 $router->post('/api/admin/departments/toggle', ['DepartmentController', 'toggleStatus']);
 
 
+
+// --- PUBLIC API ROUTES (Lead Generation & Contact) ---
+$router->post('/api/web/contact', ['PublicFormController', 'submitContact']);
+$router->post('/api/web/request-demo', ['PublicFormController', 'submitRequest']);
 
 
 // --- SITEMAP ROUTE ---

@@ -33,3 +33,12 @@ define('APPROOT', dirname(__FILE__) . '/app');
 define('APP_NAME', 'CaOSCE');
 define('APP_CAPTION', 'Clinical & Objective Structured Examination Environment');
 define('APP_LOGO_PATH', '/assets/img/default-logo.png');
+
+
+// --- SMTP EMAIL CONFIGURATION ---
+define('SMTP_HOST', 'smtp.gmail.com'); // e.g., smtp.gmail.com or your cPanel mail server
+define('SMTP_PORT', 465); // 465 for SSL, 587 for TLS
+define('SMTP_USER', 'promailerclient@gmail.com'); // Your official email address
+define('SMTP_PASS', 'yusuklvvlqwntmrk');
+define('SYSTEM_EMAIL', 'amfstacks@gmail.com'); // Where admin notifications go
+define('SYSTEM_NAME', 'CAOSCE Systems');

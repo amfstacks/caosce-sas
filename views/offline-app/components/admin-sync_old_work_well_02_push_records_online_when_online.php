@@ -30,7 +30,7 @@
 
     <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         
-        <!-- Metrics Cards -->
+        <!-- Metrics Cards (Updated to 5 columns to show Active users) -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between">
                 <div>
@@ -46,6 +46,7 @@
                 </div>
             </div>
 
+            <!-- NEW: Active (In Progress) Metric -->
             <div class="bg-purple-50 rounded-xl shadow-sm border border-purple-200 p-5 flex items-center justify-between">
                 <div>
                     <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">In Progress</p>
@@ -90,6 +91,7 @@
 
             <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
                 
+                <!-- NEW: Auto-Refresh Button to see live scores -->
                 <button @click="loadData" class="px-4 py-3 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-lg border border-slate-200 shadow-sm transition-colors flex items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     Refresh Live Scores
@@ -186,6 +188,7 @@
                                                     Reset Attempt
                                                 </button>
 
+                                                <!-- CRITICAL FIX: The button dynamically shows Sync Now or Force Resync -->
                                                 <button x-show="['synced', 'pending', 'in_progress'].includes(student.status)" @click="forceResync(student.id)" :disabled="!isOnline" class="px-3 py-1.5 text-xs font-bold text-blue-600 hover:bg-blue-50 rounded border border-blue-200 transition-colors disabled:opacity-50">
                                                     <span x-text="student.status === 'synced' ? 'Force Resync' : 'Sync Now'"></span>
                                                 </button>
@@ -381,7 +384,7 @@
                 return { total, notStarted, inProgress, pending, synced };
             },
 
-            // 1. STRICT PUSH FUNCTION
+            // CRITICAL FIX: The restored pushRecordToServer function
             async pushRecordToServer(record) {
                 try {
                     let response = await fetch(this.getBaseApiUrl() + '/api/sync/cbt-score', {
@@ -389,10 +392,6 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(record)
                     });
-                    console.log(response);
-                    console.log('response');
-                    // Throws error immediately if server rejects or is dead
-                    if (!response.ok) throw new Error("Server rejected request.");
                     
                     let data = await response.json();
                     
@@ -405,17 +404,13 @@
                                 await localforage.setItem('caosce_exam_records', dbRecords);
                             }
                         }
-                        return true; // Explicit Success
                     }
-                    return false; 
                 } catch(e) {
                     console.error("Sync failed for record:", record.record_id, e);
-                    return false; // Explicit Failure
                 }
             },
 
-            // 2. STRICT BULK SYNC
-            async startBulkSync() {
+           async startBulkSync() {
                 let pendingStudents = this.mergedRoster.filter(s => s.status === 'pending' || s.status === 'in_progress');
                 
                 if (!this.isOnline || pendingStudents.length === 0) return;
@@ -424,70 +419,38 @@
                 this.syncProgress.total = pendingStudents.length;
                 this.syncProgress.current = 0;
 
-                let successCount = 0;
-                let failureCount = 0;
-
                 for (let student of pendingStudents) {
                     let idx = this.mergedRoster.findIndex(s => s.id === student.id);
-                    let previousStatus = this.mergedRoster[idx].status;
                     this.mergedRoster[idx].status = 'syncing';
-                    
-                    let success = await this.pushRecordToServer(student.raw_submission);
-                    
-                    if (success) {
-                        successCount++;
-                    } else {
-                        failureCount++;
-                        // Prevent UI from getting stuck if it failed
-                        this.mergedRoster[idx].status = previousStatus;
-                    }
+                    await this.pushRecordToServer(student.raw_submission);
                     this.syncProgress.current++;
                 }
 
                 this.isSyncingAll = false;
+                this.showToast("Bulk Sync Queue Completed", "success");
                 await this.loadData();
-
-                if (failureCount > 0) {
-                    this.showToast(`Sync finished: ${successCount} saved, ${failureCount} failed. Check Localhost.`, "error");
-                } else {
-                    this.showToast("Bulk Sync Queue Completed Successfully", "success");
-                }
             },
 
-            // 3. STRICT FORCE RESYNC
             async forceResync(studentId) {
                 if (!this.isOnline) return;
                 let student = this.mergedRoster.find(s => s.id === studentId);
                 if (!student || !student.raw_submission) return;
 
                 let idx = this.mergedRoster.findIndex(s => s.id === studentId);
-                let previousStatus = this.mergedRoster[idx].status;
                 this.mergedRoster[idx].status = 'syncing';
 
-                let success = await this.pushRecordToServer(student.raw_submission);
+                await this.pushRecordToServer(student.raw_submission);
                 await this.loadData();
-                
-                if (success) {
-                    this.showToast(`Record forcefully synced.`, "success");
-                } else {
-                    this.showToast(`Sync Failed: Localhost unreachable.`, "error");
-                }
+                this.showToast(`Record forcefully synced.`);
             },
 
-            // THE ZOMBIE KILLER RESET
             async resetAttempt(studentId) {
-                let student = this.mergedRoster.find(s => s.id == studentId);
-                
-                if(!student) {
-                    this.showToast("Error: Could not locate student data.", "error");
-                    return;
-                }
-
-                if(!confirm(`DANGER: Delete exam attempt for ${student.matric}? Ensure their exam tab is CLOSED before proceeding.`)) return;
+                let student = this.mergedRoster.find(s => s.id === studentId);
+                if(!confirm(`DANGER: Delete exam attempt for ${student.matric}? They will have to start over.`)) return;
 
                 let dbRecords = await localforage.getItem('caosce_exam_records');
                 if (dbRecords) {
-                    dbRecords = dbRecords.filter(r => String(r.student_id) !== String(studentId));
+                    dbRecords = dbRecords.filter(r => r.student_id !== studentId);
                     await localforage.setItem('caosce_exam_records', dbRecords);
                 }
 

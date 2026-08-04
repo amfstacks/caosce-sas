@@ -1,10 +1,10 @@
-<!-- START OF COMPONENT: cbt.php -->
+START OF COMPONENT: cbt.php -->
 <div class="h-screen w-full flex flex-col overflow-hidden no-select" x-data="cbtController()" @keydown.window="handleKeydown($event)" x-init="initCbt()" x-cloak>
 
     <!-- Preloader -->
     <div x-show="isLoading" class="absolute inset-0 z-[300] bg-slate-900 flex flex-col items-center justify-center p-4">
         <svg class="animate-spin h-10 w-10 text-blue-500 mb-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-        <p class="text-white font-medium animate-pulse">Loading Exam Environment...</p>
+        <p class="text-white font-medium animate-pulse">Loading Exam Payload...</p>
     </div>
 
     <!-- Start Screen -->
@@ -18,9 +18,7 @@
                 <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
             </div>
             <h1 class="text-3xl font-bold text-slate-900 mb-2">Ready to Begin?</h1>
-            
-            <p x-show="!restoredSession" class="text-slate-600 mb-8" x-text="'Welcome, ' + student.name + '. You have ' + examDurationMinutes + ' minutes to complete this module.'"></p>
-            <p x-show="restoredSession" class="text-slate-600 mb-8" x-text="'Welcome back, ' + student.name + '. You have ' + formattedTime + ' remaining.'"></p>
+            <p class="text-slate-600 mb-8" x-text="'Welcome, ' + student.name + '. You have ' + examDurationMinutes + ' minutes to complete this module.'"></p>
             
             <button @click="startExamAction()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg shadow-lg transition-colors flex items-center justify-center gap-3 touch-btn">
                 <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
@@ -28,9 +26,9 @@
             </button>
 
             <br>
-             <button @click="goBackHome" type="button" class=" mt-4 w-full text-xs btn-sm font-bold text-slate-400 hover:text-white mt-1 transition-colors flex justify-center items-center rounded-xl bg-red-400 px-1 py-4 text-sm shadow-lg shadow-blue-900/20 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
-                Cancel and Go Home
-            </button>
+             <button @click="goBackHome" type="button" class=" mt-4 w-full text-xs btn-sm font-bold text-slate-400 hover:text-white mt-1 transition-colors flex w-full justify-center items-center rounded-xl bg-red-400 px-1 py-4 text-sm font-bold text-white shadow-lg shadow-blue-900/20 hover:bg-red-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                                Cancel and Go Home
+                            </button>
         </div>
     </div>
 
@@ -106,16 +104,13 @@
             </div>
 
             <div class="mt-auto border-t border-slate-200 bg-slate-50 p-4">
-                <!-- Pure Tailwind Auto-Advance Toggle -->
                 <div class="flex items-center justify-between mb-4">
                     <span class="text-sm font-medium text-slate-700">Auto-Advance</span>
-                    <button type="button" 
-                            class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-                            :class="autoNext ? 'bg-blue-600' : 'bg-slate-300'"
-                            @click="autoNext = !autoNext">
-                        <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                              :class="autoNext ? 'translate-x-5' : 'translate-x-0'"></span>
-                    </button>
+                    <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <!-- Note: Since we removed the <style> block, we must rely on inline styling or ensure the toggle CSS is in master.php -->
+                        <input type="checkbox" name="toggle" id="autoNextToggle" x-model="autoNext" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" style="right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s;"/>
+                        <label for="autoNextToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-slate-300 cursor-pointer" style="width: 3rem; height: 1.5rem; transition: all 0.3s;"></label>
+                    </div>
                 </div>
 
                 <div class="text-xs text-slate-500 bg-slate-200/50 p-3 rounded-lg border border-slate-200">
@@ -241,6 +236,7 @@
 </div>
 
 <script>
+    // Ensure TENANT_SLUG is declared globally outside if not already present in master
     if(typeof TENANT_SLUG === 'undefined') {
         window.TENANT_SLUG = '<?php echo CURRENT_TENANT_SLUG ?? ""; ?>';
     }
@@ -262,32 +258,27 @@
             showConfirmModal: false,
             
             examDurationMinutes: 15,
-            exam_end_time: null, 
             timeRemaining: 0,
             timerInterval: null,
             restoredSession: false,
             session_id: '',
 
            async initCbt() {
+                // 1. Delete the 'navigate' listener. We ONLY listen to 'view-activated'
+                // 2. Delete the direct 'await this.bootCbtSession()' at the bottom.
+                
                 window.addEventListener('view-activated', async (e) => {
                     if (e.detail === 'cbt') {
                         await this.bootCbtSession();
                     }
                 });
 
+                // Fullscreen listener stays
                 document.addEventListener('fullscreenchange', this.handleFullscreenChange.bind(this));
             },
 
             async bootCbtSession() {
                 this.isLoading = true;
-
-                this.isSubmitting = false;
-                this.showConfirmModal = false;
-                this.examStarted = false;
-                this.isLocked = false;
-                this.currentIndex = 0;
-                this.exam_end_time = null;
-                this.restoredSession = false;
                 const authStr = sessionStorage.getItem('caosce_offline_auth');
                 if (!authStr) {
                     window.dispatchEvent(new CustomEvent('navigate', { detail: 'login' }));
@@ -298,6 +289,7 @@
             },
 
             handleFullscreenChange() {
+                // Ensure we only lock if this component is active
                 if (this.examStarted && !this.isSubmitting && !document.fullscreenElement) {
                     this.isLocked = true;
                 }
@@ -316,46 +308,16 @@
                     this.station = payload.station_settings;
                     this.session_id = payload.session_id;
                     this.examDurationMinutes = this.station.time_limit_minutes || 15;
-
-                    // CHECK 1: Ensure user hasn't already submitted this exam
-                    let records = await localforage.getItem('caosce_exam_records') || [];
-                    let existingSubmission = records.find(r => r.student_id === this.student.id && r.station_id === this.station.id);
                     
-                    if (existingSubmission) {
-                        alert("Access Denied: You have already submitted this examination.");
-                        window.dispatchEvent(new CustomEvent('navigate', { detail: 'login' }));
-                        return;
-                    }
-                    
-                    // CHECK 2: Load progress and calculate true time remaining
                     const progressKey = `caosce_progress_${this.student.id}_${this.station.id}`;
                     const savedProgressStr = localStorage.getItem(progressKey);
                     
                     if (savedProgressStr) {
                         const savedProgress = JSON.parse(savedProgressStr);
                         this.questions = savedProgress.questions;
-                        
-                        if (savedProgress.exam_end_time) {
-                            this.exam_end_time = savedProgress.exam_end_time;
-                            let remainingSeconds = Math.floor((this.exam_end_time - Date.now()) / 1000);
-                            
-                            if (remainingSeconds <= 0) {
-                                alert("Your exam time has completely elapsed. Saving final answers.");
-                                this.timeRemaining = 0;
-                                this.finalizeExam(); 
-                                return; 
-                            } else {
-                                this.timeRemaining = remainingSeconds;
-                                this.restoredSession = true;
-                            }
-                        } else {
-                            // Fallback for sessions saved before this update
-                            this.timeRemaining = savedProgress.timeRemaining;
-                            this.exam_end_time = Date.now() + (this.timeRemaining * 1000);
-                            this.restoredSession = true;
-                        }
+                        this.timeRemaining = savedProgress.timeRemaining;
+                        this.restoredSession = true;
                     } else {
-                        // Brand new exam start
                         this.questions = payload.questions.map(q => ({ ...q, selected: null }));
                         this.timeRemaining = this.examDurationMinutes * 60;
                     }
@@ -365,29 +327,23 @@
                 } catch (error) {
                     console.error("Failed to load exam data:", error);
                     alert("Critical Error: Missing offline exam data.");
+                    // this.$dispatch('navigate', 'login');
                     window.dispatchEvent(new CustomEvent('navigate', { detail: 'login' }));
                 }
             },
 
             startExamAction() {
-                // Generate absolute end time if they are starting fresh
-                if (!this.exam_end_time) {
-                    this.exam_end_time = Date.now() + (this.examDurationMinutes * 60 * 1000);
-                }
-
                 this.examStarted = true;
                 this.startTimer();
-                this.autoSaveProgress(); 
                 
                 let elem = document.documentElement;
                 if (elem.requestFullscreen) {
                     elem.requestFullscreen().catch(err => console.log("Fullscreen request failed:", err));
                 }
             },
-
             goBackHome(){
-                this.$dispatch('navigate', 'login');
-            },
+                    this.$dispatch('navigate', 'login');
+                },
 
             resumeFullscreen() {
                 let elem = document.documentElement;
@@ -436,8 +392,7 @@
                 const progressKey = `caosce_progress_${this.student.id}_${this.station.id}`;
                 const progressData = {
                     questions: this.questions,
-                    timeRemaining: this.timeRemaining, // Keep for fallback visibility
-                    exam_end_time: this.exam_end_time, // Essential for strict timing
+                    timeRemaining: this.timeRemaining,
                     last_saved: Date.now()
                 };
                 localStorage.setItem(progressKey, JSON.stringify(progressData));
@@ -466,10 +421,11 @@
                 this.stopTimer();
                 this.isSubmitting = true;
                 
+                // Remove fullscreen listener to prevent locking on exit
                 document.removeEventListener('fullscreenchange', this.handleFullscreenChange);
                 
                 if (document.fullscreenElement) {
-                    try { await document.exitFullscreen(); } catch(e) {}
+                    document.exitFullscreen().catch(err => console.log(err));
                 }
 
                 let calculatedScore = 0;
@@ -510,7 +466,8 @@
 
                     await this.attemptFinalSync(finalRecord);
 
-                    window.dispatchEvent(new CustomEvent('navigate', { detail: 'login' }));
+                    // Switch back to login screen smoothly
+                    this.$dispatch('navigate', 'login');
 
                 } catch(e) {
                     console.error(e);
@@ -537,26 +494,19 @@
                             await localforage.setItem('caosce_exam_records', records);
                         }
                     }
-                } catch(e) {}
+                } catch(e) { console.log("Final sync failed. Will remain pending in offline DB."); }
             },
 
             startTimer() {
                 this.timerInterval = setInterval(() => {
-                    let now = Date.now();
-                    let remainingSeconds = Math.floor((this.exam_end_time - now) / 1000);
-
-                    if (remainingSeconds <= 0) {
-                        this.timeRemaining = 0;
+                    if (this.timeRemaining > 0) {
+                        this.timeRemaining--;
+                        if(this.timeRemaining % 30 === 0) this.autoSaveProgress();
+                    } else {
                         this.stopTimer();
                         this.showConfirmModal = false;
                         alert("Time is up! Your exam is being automatically submitted.");
                         this.finalizeExam();
-                    } else {
-                        this.timeRemaining = remainingSeconds;
-                        // Auto-save every 30 seconds
-                        if (this.timeRemaining % 30 === 0) {
-                            this.autoSaveProgress();
-                        }
                     }
                 }, 1000);
             },
@@ -578,4 +528,4 @@
         }
     }
 </script>
-<!-- END OF COMPONENT: cbt.php -->
+<!-- END OF COMPONENT: cbt.php

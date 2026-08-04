@@ -25,9 +25,11 @@ include '../views/layouts/header.php';
         </header>
 
         <!-- Scrollable Main Content -->
+        <!-- Scrollable Main Content -->
         <main class="flex-1 overflow-x-hidden overflow-y-auto bg-slate-50/50 p-8 sm:p-10 z-0">
             
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+            <!-- CHANGED: overflow-hidden to overflow-x-auto -->
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-x-auto">
                 <table class="min-w-full divide-y divide-slate-100">
                     <thead class="bg-slate-50/80">
                         <tr>

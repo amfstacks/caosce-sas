@@ -81,34 +81,78 @@
     <!-- ========================================== -->
     <!-- NAVBAR                                     -->
     <!-- ========================================== -->
+<!-- ========================================== -->
+    <!-- NAVBAR                                     -->
+    <!-- ========================================== -->
     <nav class="absolute top-0 w-full z-50 transition-all duration-300 border-b border-white/10" :class="{'bg-slate-900/90 backdrop-blur-md fixed': scrolled, 'absolute': !scrolled}" @scroll.window="scrolled = (window.pageYOffset > 50)">
         <div class="max-w-7xl mx-auto px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <!-- Logo Placeholder -->
                 <div class="flex-shrink-0 flex items-center gap-3 cursor-pointer">
-                    <!-- Professional Geometric Logo Placeholder -->
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                        <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
-                        </svg>
-                    </div>
+                    <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm text-white font-bold">C</div>
                     <span class="text-2xl font-extrabold text-white tracking-tight">CAOSCE</span>
                 </div>
                 
-                <!-- Links -->
-                <div class="hidden md:flex items-center space-x-8">
+                <!-- Desktop Links (Hidden on Mobile) -->
+                <div class="hidden lg:flex items-center space-x-6">
+                    
+                    <!-- Top Phone Number -->
+                    <a href="tel:+2348034107132" class="flex items-center gap-2 text-sm font-bold text-slate-300 hover:text-white transition-colors">
+                        <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        +234 8034107132
+                    </a>
+
+                    <div class="h-4 w-px bg-slate-700"></div>
+
                     <a href="#how-it-works" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">How it Works</a>
                     <a href="#features" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Features</a>
                     <button @click="$dispatch('open-contact')" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Contact Us</button>
+                    
                     <div class="h-5 w-px bg-slate-700"></div>
 
-<button @click="$dispatch('open-request')" class="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors">Request Access</button>
+                    <button @click="$dispatch('open-request')" class="text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors">Request Access</button>
                     
                     <!-- Admin Login Link -->
                     <a href="admin/login" class="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-white transition-all bg-white/10 hover:bg-white/20 rounded-full ring-1 ring-white/20">
                         Admin Login
                     </a>
                 </div>
+
+                <!-- Mobile Hamburger Button -->
+                <div class="lg:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="text-slate-300 hover:text-white p-2 focus:outline-none">
+                        <svg x-show="!mobileMenuOpen" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                        <svg x-show="mobileMenuOpen" x-cloak class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Panel -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-4"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-4"
+             x-cloak
+             class="lg:hidden absolute top-20 left-0 w-full bg-slate-900/95 backdrop-blur-xl border-b border-white/10 shadow-2xl">
+            <div class="px-6 py-8 flex flex-col space-y-6 text-center">
+                
+                <a href="tel:+2348034107132" class="flex items-center justify-center gap-2 text-base font-bold text-slate-200 hover:text-white">
+                    <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                    +234 803 410 7132
+                </a>
+
+                <div class="w-12 h-px bg-slate-700 mx-auto"></div>
+
+                <a href="#how-it-works" @click="mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">How it Works</a>
+                <a href="#features" @click="mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">Features</a>
+                <button @click="$dispatch('open-contact'); mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">Contact Us</button>
+                
+                <button @click="$dispatch('open-request'); mobileMenuOpen = false" class="w-full py-3.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg mt-4">Request Access</button>
+                <a href="admin/login" class="w-full py-3.5 bg-white/10 text-white font-bold rounded-xl ring-1 ring-white/20">Admin Login</a>
             </div>
         </div>
     </nav>
@@ -260,6 +304,10 @@
                             </div>
                         </li>
                     </ul>
+<br>
+                    <a href="clinical-osce-software" class="inline-flex items-center justify-center px-5 py-2 text-sm font-bold text-primary transition-all bg-white/10 hover:bg-white/20 rounded-full ring-1 ring-white/20">
+                       View more
+                    </a>
                 </div>
 
                 <!-- Image Side -->
@@ -302,20 +350,46 @@
     <!-- ========================================== -->
     <!-- FOOTER                                     -->
     <!-- ========================================== -->
-    <footer class="bg-slate-900 py-12 border-t border-slate-800">
-        <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
-                <div class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
-                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+<!-- ========================================== -->
+    <!-- FOOTER                                     -->
+    <!-- ========================================== -->
+    <footer class="bg-slate-900 py-16 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 items-center md:items-start text-center md:text-left">
+                
+                <!-- Brand Column -->
+                <div class="flex flex-col items-center md:items-start gap-4">
+                    <div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+                        <div class="w-8 h-8 bg-slate-700 rounded-lg flex items-center justify-center">
+                            <div class="w-5 h-5 flex items-center justify-center text-xs text-white font-bold">C</div>
+                        </div>
+                        <span class="text-xl font-extrabold text-white tracking-tight">CAOSCE</span>
+                    </div>
+                    <p class="text-slate-500 text-sm">© <?php echo date('Y'); ?> CAOSCE Systems.<br>All rights reserved.</p>
                 </div>
-                <span class="text-xl font-extrabold text-white tracking-tight">CAOSCE</span>
+
+                <!-- Contact Info Column -->
+                <div class="flex flex-col items-center md:items-center gap-3 text-slate-400 text-sm font-medium">
+                    <h4 class="text-slate-200 font-bold mb-1 uppercase tracking-wider text-xs">Contact Us</h4>
+                    <a href="tel:+2348034107132" class="flex items-center gap-2 hover:text-white transition-colors">
+                        <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                        +234 803 410 7132
+                    </a>
+                    <a href="mailto:info@caosce.com" class="flex items-center gap-2 hover:text-white transition-colors">
+                        <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        info@caosce.com
+                    </a>
+                </div>
+
+                <!-- Legal / Links Column -->
+                <div class="flex flex-col items-center md:items-end gap-3 text-sm text-slate-500 font-medium">
+                    <h4 class="text-slate-200 font-bold mb-1 uppercase tracking-wider text-xs">Legal</h4>
+                    <button @click="$dispatch('open-contact')" class="hover:text-slate-300 transition-colors">Support Center</button>
+                    <a href="#" class="hover:text-slate-300 transition-colors">Privacy Policy</a>
+                    <a href="#" class="hover:text-slate-300 transition-colors">Terms of Service</a>
+                </div>
+
             </div>
-            <div class="flex gap-6 text-sm text-slate-500 font-medium">
-               <button @click="$dispatch('open-contact')" class="hover:text-slate-300 transition-colors">Contact Support</button>
-                <a href="#" class="hover:text-slate-300 transition-colors">Privacy Policy</a>
-                <a href="#" class="hover:text-slate-300 transition-colors">Terms of Service</a>
-            </div>
-            <p class="text-slate-600 text-sm">© <?php echo date('Y'); ?> CAOSCE Systems. All rights reserved.</p>
         </div>
     </footer>
 
@@ -333,6 +407,7 @@
                 isChecking: false,
                 errorMessage: '',
                 scrolled: false,
+                mobileMenuOpen: false,
                 
 
 

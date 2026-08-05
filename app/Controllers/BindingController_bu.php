@@ -7,47 +7,30 @@ class BindingController {
         $this->db = new Database();
     }
 
-    // Helper to securely get the logged-in school's workspace ID
-    private function getSchoolId() {
-        if (session_status() === PHP_SESSION_NONE) session_start();
-        return $_SESSION['school_id'] ?? null;
-    }
-
     // 1. Fetch form data (Sessions, Stations, and existing PINs)
     public function getBindingData() {
-        $schoolId = $this->getSchoolId();
-        
-        if (!$schoolId) {
-            return json_encode(['success' => false, 'message' => 'Unauthorized: School session not found.']);
-        }
-
         try {
-            // Get all active sessions for THIS school
-            $this->db->query("SELECT id, title FROM exam_sessions WHERE school_id = :school_id ORDER BY created_at DESC");
-            $this->db->bind(':school_id', $schoolId);
+            // Get all active sessions using correct table 'exam_sessions'
+            $this->db->query("SELECT id, title FROM exam_sessions ORDER BY created_at DESC");
             $sessions = $this->db->resultSet();
 
-            // Get all stations for THIS school
+            // Get all stations. Using aliases so the JS doesn't break (exam_session_id AS session_id, etc.)
             $this->db->query("
                 SELECT id, exam_session_id AS session_id, title, order_sequence AS sequence, station_type AS type 
                 FROM stations 
-                WHERE school_id = :school_id
                 ORDER BY order_sequence ASC
             ");
-            $this->db->bind(':school_id', $schoolId);
             $stations = $this->db->resultSet();
 
-            // Get existing PINs for THIS school
+            // Get existing PINs with joined tables matching your schema
             $this->db->query("
                 SELECT p.id, p.pin_code as code, p.label, p.is_active as active, p.created_at,
                        s.title as session_title, st.title as station_title, st.order_sequence as station_sequence
                 FROM device_binding_pins p
                 LEFT JOIN exam_sessions s ON p.session_id = s.id
                 LEFT JOIN stations st ON p.station_id = st.id
-                WHERE p.school_id = :school_id
                 ORDER BY p.created_at DESC
             ");
-            $this->db->bind(':school_id', $schoolId);
             $codes = $this->db->resultSet();
 
             return json_encode([
@@ -65,28 +48,20 @@ class BindingController {
 
     // 2. Generate and Save a New PIN
     public function generatePin($inputData) {
-        $schoolId = $this->getSchoolId();
-
         if (empty($inputData['session_id']) || empty($inputData['station_id']) || empty($inputData['pin_code'])) {
             return json_encode(['success' => false, 'message' => 'Session, Station, and PIN are required.']);
         }
 
-        if (!$schoolId) {
-            return json_encode(['success' => false, 'message' => 'Unauthorized: School context missing.']);
-        }
-
         try {
-            // Insert PIN and tie it to the school's workspace
             $this->db->query("
-                INSERT INTO device_binding_pins (id, pin_code, label, session_id, station_id, is_active, school_id) 
-                VALUES (:id, :pin, :label, :session_id, :station_id, 1, :school_id)
+                INSERT INTO device_binding_pins (id, pin_code, label, session_id, station_id, is_active) 
+                VALUES (:id, :pin, :label, :session_id, :station_id, 1)
             ");
             $this->db->bind(':id', UuidHelper::v4());
             $this->db->bind(':pin', trim($inputData['pin_code']));
             $this->db->bind(':label', !empty($inputData['label']) ? trim($inputData['label']) : 'Setup Team');
             $this->db->bind(':session_id', $inputData['session_id']);
             $this->db->bind(':station_id', $inputData['station_id']);
-            $this->db->bind(':school_id', $schoolId); // Bind the school ID
             $this->db->execute();
 
             return json_encode(['success' => true]);
@@ -171,6 +146,51 @@ class BindingController {
 
         } catch (Exception $e) {
             return json_encode(['success' => false, 'message' => 'Database error during verification.']);
+        }
+    }
+
+    // 6. Download Full Offline Payload
+    public function downloadOfflinePayload_old() {
+        $sessionId = $_GET['session_id'] ?? null;
+        $stationId = $_GET['station_id'] ?? null;
+
+        if (!$sessionId || !$stationId) {
+            return json_encode(['success' => false, 'message' => 'Missing session or station context.']);
+        }
+
+        try {
+            // A. Fetch Station Settings
+            $this->db->query("SELECT * FROM stations WHERE id = :station_id");
+            $this->db->bind(':station_id', $stationId);
+            $stationSettings = $this->db->single();
+
+            // B. Fetch All Questions for this Station
+            $this->db->query("SELECT id, question_text, opt_a, opt_b, opt_c, opt_d, correct_answer, score, order_seq FROM station_questions WHERE station_id = :station_id ORDER BY order_seq ASC");
+            $this->db->bind(':station_id', $stationId);
+            $questions = $this->db->resultSet();
+
+            // C. Fetch Roster (Students mapped to this session with their RAW PASSWORDS so they can login offline)
+            // Note: In an offline system, the frontend must verify passwords locally, so we send the raw_password.
+            $this->db->query("
+                SELECT s.id, s.matric_number, s.full_name, s.raw_password
+                FROM exam_session_student ess
+                JOIN students s ON ess.student_id = s.id
+                WHERE ess.exam_session_id = :session_id
+            ");
+            $this->db->bind(':session_id', $sessionId);
+            $students = $this->db->resultSet();
+
+            return json_encode([
+                'success' => true,
+                'payload' => [
+                    'station_settings' => $stationSettings,
+                    'questions' => $questions,
+                    'students' => $students
+                ]
+            ]);
+
+        } catch (Exception $e) {
+            return json_encode(['success' => false, 'message' => 'Database error compiling payload.']);
         }
     }
 

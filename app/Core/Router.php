@@ -31,7 +31,7 @@ class Router {
 
         // We assume any first segment that isn't a core folder/API is a school slug
         // e.g., URL is "yourschool.com/yag/login" -> $segments[0] is 'yag'
-        if (count($segments) > 0 && !in_array($segments[0], ['api', 'superadmin', 'assets','login','admin', 'setup','clinical-osce-software'])) {
+        if (count($segments) > 0 && !in_array($segments[0], ['api', 'superadmin', 'assets','login','admin', 'setup','clinical-osce-software','pricing'])) {
             $slug = $segments[0];
             
             // Save the slug as a constant so any Model/Controller can query the DB with it!

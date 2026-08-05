@@ -171,6 +171,11 @@ $router->post('/api/web/request-demo', ['PublicFormController', 'submitRequest']
 $router->get('/sitemap.xml', 'views/sitemap.php');
 
 
+//pricing
+$router->get('/pricing', 'views/pricing.php');
+$router->get('/api/pricing/tiers', ['PricingController', 'getActiveTiers']);
+
+
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $requestMethod = $_SERVER['REQUEST_METHOD'];

@@ -135,6 +135,7 @@ class AuthController {
             $_SESSION['admin_id'] = $admin['id'];
             $_SESSION['admin_role'] = $admin['role'];
             $_SESSION['admin_name'] = $admin['full_name'] ?? $admin['username'];
+            $_SESSION['admin_email'] = $admin['email'];
             $_SESSION['school_id'] = $admin['school_id'];
             
             // Optional: Store slug in session to easily build links in the admin dashboard later
@@ -198,6 +199,7 @@ class AuthController {
         $_SESSION['admin_role'] = $admin['role'];
         $_SESSION['admin_name'] = $admin['full_name'] ?? $admin['username'];
         $_SESSION['school_id'] = $admin['school_id'];
+        $_SESSION['admin_email'] = $admin['email'];
         $_SESSION['tenant_slug'] = $targetSlug;
 
         // Jump straight to the dashboard

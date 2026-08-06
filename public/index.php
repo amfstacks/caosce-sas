@@ -181,6 +181,8 @@ $router->get('/api/pricing/tiers', ['PricingController', 'getActiveTiers']);
 $router->get('/admin/licensing', 'views/admin/licensing.php');
 $router->get('/api/admin/licensing/data', ['LicensingController', 'getLicensingData']);
 $router->post('/api/admin/licensing/verify-payment', ['LicensingController', 'verifyPayment']);
+$router->post('/api/admin/licensing/initiate', ['LicensingController', 'initiatePayment']);
+
 
 // Dispatch the current request
 $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

@@ -1,4 +1,6 @@
 <?php 
+// echo $_SESSION['school_id'] ;
+// exit;
 $activeMenu = 'licensing'; 
 $pageTitle = 'Licensing & Wallet Management';
 include '../views/layouts/header.php'
@@ -39,32 +41,67 @@ include '../views/layouts/header.php'
             <div class="max-w-7xl mx-auto space-y-8">
 
                 <!-- 3-Column Balance Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- 4-Column Balance Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                     <!-- Available Slots -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -mr-8 -mt-8 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Available Slots</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.available_slots">0</div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Available</p>
+                        <div class="text-3xl font-black text-slate-900" x-text="wallet.available_slots || 0">0</div>
                         <p class="text-xs text-slate-500 mt-2">Ready to be assigned to exam sessions.</p>
                     </div>
 
                     <!-- Escrowed Slots -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-full -mr-8 -mt-8 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Escrowed (Reserved)</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.escrow_slots">0</div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Escrowed</p>
+                        <div class="text-3xl font-black text-slate-900" x-text="wallet.escrow_slots || 0">0</div>
                         <p class="text-xs text-slate-500 mt-2">Locked for pending examinations.</p>
+                    </div>
+                    
+                    <!-- Used Slots -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-rose-600 mb-1">Total Used</p>
+                        <div class="text-3xl font-black text-slate-900" x-text="wallet.used_slots || 0">0</div>
+                        <p class="text-xs text-slate-500 mt-2">Permanently deducted from synced exams.</p>
                     </div>
 
                     <!-- Lifetime Total -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-bl-full -mr-8 -mt-8 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Lifetime Slots Purchased</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.total_lifetime_slots">0</div>
-                        <p class="text-xs text-slate-500 mt-2">Total volume acquired to date.</p>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                        <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Lifetime Volume</p>
+                        <div class="text-3xl font-black text-slate-900" x-text="wallet.total_lifetime_slots || 0">0</div>
+                        <p class="text-xs text-slate-500 mt-2">Total slots purchased to date.</p>
                     </div>
                 </div>
 
+
+                <!-- Pending Payments (Requery Section) -->
+                <div x-show="pending_payments.length > 0" class="bg-amber-50 border border-amber-200 shadow-sm sm:rounded-2xl overflow-hidden mb-8" x-cloak>
+                    <div class="px-6 py-4 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                            <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            Pending Payments (Action Required)
+                        </h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <template x-for="payment in pending_payments" :key="payment.id">
+                            <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 transition-all hover:shadow-md">
+                                <div>
+                                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reference: <span class="text-slate-900 font-mono" x-text="payment.reference"></span></p>
+                                    <p class="text-sm font-medium text-slate-700">
+                                        Attempted to purchase <strong class="text-slate-900" x-text="payment.slots_requested"></strong> slots for <strong class="text-slate-900" x-text="formatNaira(payment.amount_expected)"></strong>.
+                                    </p>
+                                </div>
+                                <button @click="verifyPaystackTransaction(payment.reference)" class="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                    Requery Status
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
                 <!-- Transaction Ledger History -->
                 <div class="bg-white shadow-sm sm:rounded-2xl overflow-hidden border border-slate-200">
                     <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
@@ -97,8 +134,8 @@ include '../views/layouts/header.php'
                                         </td>
                                         <td class="px-3 py-4 text-sm font-medium text-slate-800" x-text="log.description"></td>
                                         <td class="whitespace-nowrap px-3 py-4 text-center text-sm font-bold"
-                                            :class="log.slots_amount > 0 ? 'text-emerald-600' : 'text-slate-600'">
-                                            <span x-text="log.slots_amount > 0 ? '+' + log.slots_amount : log.slots_amount"></span>
+                                            :class="log.transaction_type === 'deduction'  ? 'text-red-600' : 'text-emerald-600'">
+                                            <span x-text="log.transaction_type === 'deduction' ? '-' + log.slots_amount :  '+' + log.slots_amount"></span>
                                         </td>
                                         <td class="whitespace-nowrap px-3 py-4 text-right text-sm font-bold text-slate-900" x-text="formatNaira(log.naira_value)"></td>
                                         <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm text-slate-500" x-text="log.created_at"></td>
@@ -139,12 +176,14 @@ include '../views/layouts/header.php'
                     <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Number of Exam Slots (Students)</label>
                         <div class="flex items-center gap-4 mb-4">
-                            <input type="number" x-model.number="slots" min="1" class="w-36 text-2xl font-black text-slate-900 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-center focus:ring-2 focus:ring-blue-500">
+                            <!-- <input type="number" x-model.number="slots" min="1" class="w-36 text-2xl font-black text-slate-900 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-center focus:ring-2 focus:ring-blue-500"> -->
+                            <input type="number" x-model.number="slots" min="10" @blur="if(slots < 10) slots = 10" class="w-36 text-2xl font-black text-slate-900 bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-center focus:ring-2 focus:ring-blue-500">
                             <span class="text-slate-500 font-semibold text-sm">Slots required</span>
                         </div>
                         
                         <!-- Range Slider -->
-                        <input type="range" x-model.number="slots" min="1" max="2500" step="1" class="w-full appearance-none bg-slate-200 h-2 rounded-lg cursor-pointer accent-blue-600">
+                        <!-- <input type="range" x-model.number="slots" min="1" max="2500" step="1" class="w-full appearance-none bg-slate-200 h-2 rounded-lg cursor-pointer accent-blue-600"> -->
+                        <input type="range" x-model.number="slots" min="10" max="2500" step="1" class="w-full appearance-none bg-slate-200 h-2 rounded-lg cursor-pointer accent-blue-600">
                     </div>
 
                     <!-- Active Tier Notice -->
@@ -165,7 +204,7 @@ include '../views/layouts/header.php'
                                 <tr>
                                     <th class="py-2.5 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider">Package Tier</th>
                                     <th class="py-2.5 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider">Volume Range</th>
-                                    <th class="py-2.5 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider text-right">Price per Slot</th>
+                                    <th class="py-2.5 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider text-right">Price per Slot/Student</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100">
@@ -197,8 +236,9 @@ include '../views/layouts/header.php'
                             <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Investment</p>
                             <div class="text-3xl font-black text-slate-900 mt-1" x-text="formatNaira(totalCost)"></div>
                         </div>
-                        <button @click="initiatePaystackPayment()" 
-                                class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2">
+                      <button @click="initiatePaystackPayment()" 
+        :disabled="slots < 10"
+        class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:hover:bg-blue-600 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-blue-600/30 transition-all flex items-center justify-center gap-2">
                             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                             Pay Securely
                         </button>
@@ -224,9 +264,10 @@ include '../views/layouts/header.php'
     <script>
         function licensingController() {
             return {
-                wallet: { available_slots: 0, escrow_slots: 0, total_lifetime_slots: 0 },
+                wallet: { available_slots: 0, escrow_slots: 0, used_slots: 0, total_lifetime_slots: 0 },
                 ledger: [],
                 tiers: [],
+                pending_payments: [],
                 slots: 100,
                 showModal: false,
                 isReady: false,
@@ -252,13 +293,17 @@ include '../views/layouts/header.php'
                     setTimeout(() => { this.toast.visible = false; }, 3000);
                 },
 
-                async fetchLicensingData() {
+            async fetchLicensingData() {
                     try {
                         let res = await fetch(this.getBaseApiUrl() + '/api/admin/licensing/data');
                         let data = await res.json();
                         if(data.success) {
                             this.wallet = data.payload.wallet;
                             this.ledger = data.payload.ledger;
+                            
+                            // ADD THIS LINE TO LOAD PENDING PAYMENTS:
+                            this.pending_payments = data.payload.pending_payments || []; 
+                            
                             this.tiers = data.payload.tiers.map(t => ({
                                 name: t.tier_name,
                                 min: parseInt(t.min_slots),
@@ -299,45 +344,77 @@ include '../views/layouts/header.php'
                     return '₦' + Number(amount).toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                 },
 
-                // Paystack Payment Integration
-                initiatePaystackPayment() {
-                    let handler = PaystackPop.setup({
-                        key: 'pk_test_YOUR_ACTUAL_PAYSTACK_PUBLIC_KEY', // Replace with your public key or inject via PHP
-                        email: 'admin@' + (window.location.hostname || 'caosce.com'),
-                        amount: this.totalCost * 100, // Paystack expects amount in Kobo
-                        currency: 'NGN',
-                        ref: 'CAOSCE_' + Math.floor((Math.random() * 1000000000) + 1),
-                        callback: (response) => {
-                            this.verifyPaystackTransaction(response.reference);
-                        },
-                        onClose: () => {
-                            this.showToast('Payment window closed.');
-                        }
-                    });
-                    handler.openIframe();
-                },
+               // Add 'pending_payments: []' to your return {} object at the top of licensingController()
+// Add an HTML section above the Ledger table to loop through pending_payments with a "Requery" button calling verifyPaystackTransaction(ref)
 
-                async verifyPaystackTransaction(reference) {
-                    this.showModal = false;
-                    this.showToast('Verifying payment and updating wallet...');
-                    
-                    try {
-                        let res = await fetch(this.getBaseApiUrl() + '/api/admin/licensing/verify-payment', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ reference: reference, slots: this.slots, amount: this.totalCost })
-                        });
-                        let data = await res.json();
-                        if(data.success) {
-                            this.showToast('Slots successfully added to your wallet!');
-                            await this.fetchLicensingData(); // Refresh UI
-                        } else {
-                            alert(data.message || 'Payment verification failed.');
-                        }
-                    } catch(e) {
-                        alert('Network error verifying payment.');
-                    }
-                }
+async initiatePaystackPayment() {
+    this.showToast('Initializing secure payment...');
+    
+    try {
+        // 1. Get atomic reference and strict price from our Backend
+        let initRes = await fetch(this.getBaseApiUrl() + '/api/admin/licensing/initiate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slots: this.slots })
+        });
+        
+        let initData = await initRes.json();
+        
+        if (!initData.success) {
+            alert(initData.message);
+            return;
+        }
+
+        let securePayload = initData.payload;
+
+        // 2. Open Paystack using the Backend's strict data
+        let handler = PaystackPop.setup({
+            key: 'pk_test_165ca8d2378b5ab6c7430de54a306ca75947759c', 
+            email: securePayload.email,
+            amount: securePayload.amount_kobo,
+            currency: 'NGN',
+            ref: securePayload.reference, // The backend-generated atomic reference
+            // split_code: 'SPL_p6gm6zFsVy',
+            callback: (response) => {
+                // 3. Verify Payment
+                this.verifyPaystackTransaction(response.reference);
+            },
+            onClose: () => {
+                this.showToast('Payment window closed. You can requery this later.');
+                this.fetchLicensingData(); // Refresh to show the new pending attempt
+            }
+        });
+        handler.openIframe();
+        
+    } catch (e) {
+        alert('Network error initializing payment.');
+    }
+},
+
+async verifyPaystackTransaction(reference) {
+    this.showModal = false;
+    this.showToast('Verifying payment on the server...');
+    
+    try {
+        let res = await fetch(this.getBaseApiUrl() + '/api/admin/licensing/verify-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference: reference })
+        });
+        
+        let data = await res.json();
+        
+        if (data.success) {
+            this.showToast(data.message);
+            await this.fetchLicensingData(); // Refresh UI balances
+        } else {
+            alert(data.message || 'Payment verification failed.');
+            await this.fetchLicensingData(); // Refresh to update status
+        }
+    } catch(e) {
+        alert('Network error verifying payment.');
+    }
+}
             }
         }
     </script>

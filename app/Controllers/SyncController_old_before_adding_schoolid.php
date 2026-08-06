@@ -6,22 +6,12 @@ class SyncController {
         $this->db = new Database();
     }
 
-    private function getSchoolIdFromSession($sessionId) {
-        $this->db->query("SELECT school_id FROM exam_sessions WHERE id = :id LIMIT 1");
-        $this->db->bind(':id', $sessionId);
-        $result = $this->db->single();
-        return $result ? $result['school_id'] : null;
-    }
-
     // 1. Receives individual clicks/ticks in real-time
     public function logTick($inputData) {
         $studentId = $inputData['student_id'];
         $examSessionId = $inputData['exam_session_id'];
         $questionId = $inputData['question_id']; 
         $answer = $inputData['answer']; 
-
-        // Get the school_id securely from the session
-        $schoolId = $this->getSchoolIdFromSession($examSessionId);
 
         // Get the correct answer to log if they are correct real-time
         $this->db->query("SELECT correct_answer, score FROM station_questions WHERE id = :qid");
@@ -31,14 +21,13 @@ class SyncController {
         $isCorrect = ($qData && $qData['correct_answer'] === $answer) ? 1 : 0;
         $earned = $isCorrect ? $qData['score'] : 0;
 
-       // Upsert Answer (Now includes school_id)
+        // Upsert Answer
         $this->db->query("
-            INSERT INTO student_responses (id, school_id, student_id, exam_session_id, station_id, question_id, answer_data, is_correct, score_earned) 
-            VALUES (:id, :sch, :sid, :esid, (SELECT station_id FROM station_questions WHERE id = :qid), :qid, :ans, :is_correct, :earned)
+            INSERT INTO student_responses (id, student_id, exam_session_id, station_id, question_id, answer_data, is_correct, score_earned) 
+            VALUES (:id, :sid, :esid, (SELECT station_id FROM station_questions WHERE id = :qid), :qid, :ans, :is_correct, :earned)
             ON DUPLICATE KEY UPDATE answer_data = :ans, is_correct = :is_correct, score_earned = :earned, synced_at = CURRENT_TIMESTAMP
         ");
         $this->db->bind(':id', UuidHelper::v4());
-        $this->db->bind(':sch', $schoolId);
         $this->db->bind(':sid', $studentId);
         $this->db->bind(':esid', $examSessionId);
         $this->db->bind(':qid', $questionId);
@@ -59,20 +48,16 @@ class SyncController {
         $maxPossible = $inputData['max_possible'];
         $breakdown = $inputData['breakdown']; // Array of objects
 
-        // Get the school_id securely from the session
-        $schoolId = $this->getSchoolIdFromSession($sessionId);
-
-    try {
+        try {
             $this->db->beginTransaction();
 
-            // 1. Save Final Score (Now includes school_id)
+            // 1. Save Final Score
             $this->db->query("
-                INSERT INTO station_scores (id, school_id, student_id, exam_session_id, station_id, total_score, max_possible) 
-                VALUES (:id, :sch, :sid, :esid, :stid, :score, :max)
+                INSERT INTO station_scores (id, student_id, exam_session_id, station_id, total_score, max_possible) 
+                VALUES (:id, :sid, :esid, :stid, :score, :max)
                 ON DUPLICATE KEY UPDATE total_score = :score, max_possible = :max, synced_at = CURRENT_TIMESTAMP
             ");
             $this->db->bind(':id', UuidHelper::v4());
-            $this->db->bind(':sch', $schoolId);
             $this->db->bind(':sid', $studentId);
             $this->db->bind(':esid', $sessionId);
             $this->db->bind(':stid', $stationId);
@@ -80,17 +65,16 @@ class SyncController {
             $this->db->bind(':max', $maxPossible);
             $this->db->execute();
 
-            // 2. Loop and Bulk Update all Answers
+            // 2. Loop and Bulk Update all Answers (Ensures 100% data integrity even if ticks failed)
             foreach ($breakdown as $item) {
                 if(empty($item['answer_chosen'])) continue; // Skip unanswered
                 
                 $this->db->query("
-                    INSERT INTO student_responses (id, school_id, student_id, exam_session_id, station_id, question_id, answer_data, is_correct, score_earned) 
-                    VALUES (:id, :sch, :sid, :esid, :stid, :qid, :ans, :is_correct, :earned)
+                    INSERT INTO student_responses (id, student_id, exam_session_id, station_id, question_id, answer_data, is_correct, score_earned) 
+                    VALUES (:id, :sid, :esid, :stid, :qid, :ans, :is_correct, :earned)
                     ON DUPLICATE KEY UPDATE answer_data = :ans, is_correct = :is_correct, score_earned = :earned, synced_at = CURRENT_TIMESTAMP
                 ");
                 $this->db->bind(':id', UuidHelper::v4());
-                $this->db->bind(':sch', $schoolId);
                 $this->db->bind(':sid', $studentId);
                 $this->db->bind(':esid', $sessionId);
                 $this->db->bind(':stid', $stationId);

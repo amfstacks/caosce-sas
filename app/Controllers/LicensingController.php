@@ -135,7 +135,7 @@ class LicensingController {
                 $this->db->bind(':id', $ledgerId);
                 $this->db->bind(':sch', $schoolId);
                 $this->db->bind(':slots', $unbilledSlots);
-                $this->db->bind(':desc', "System Auto-Settlement: Deducted {$unbilledSlots} slot(s) for newly synced offline exams.");
+                $this->db->bind(':desc', "System Auto-Settlement: Deducted {$unbilledSlots} slot(s).");
                 $this->db->execute();
             }
 

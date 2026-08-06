@@ -37,120 +37,135 @@ include '../views/layouts/header.php'
         </header>
 
         <!-- Scrollable Page Content -->
+        <!-- Scrollable Page Content -->
         <main class="flex-1 overflow-y-auto bg-slate-50 p-6 sm:p-10">
-            <div class="max-w-7xl mx-auto space-y-8">
-
-                <!-- 3-Column Balance Cards -->
-                <!-- 4-Column Balance Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-                    <!-- Available Slots -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Available</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.available_slots || 0">0</div>
-                        <p class="text-xs text-slate-500 mt-2">Ready to be assigned to exam sessions.</p>
-                    </div>
-
-                    <!-- Escrowed Slots -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Escrowed</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.escrow_slots || 0">0</div>
-                        <p class="text-xs text-slate-500 mt-2">Locked for pending examinations.</p>
-                    </div>
-                    
-                    <!-- Used Slots -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-rose-600 mb-1">Total Used</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.used_slots || 0">0</div>
-                        <p class="text-xs text-slate-500 mt-2">Permanently deducted from synced exams.</p>
-                    </div>
-
-                    <!-- Lifetime Total -->
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
-                        <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
-                        <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Lifetime Volume</p>
-                        <div class="text-3xl font-black text-slate-900" x-text="wallet.total_lifetime_slots || 0">0</div>
-                        <p class="text-xs text-slate-500 mt-2">Total slots purchased to date.</p>
-                    </div>
+            <div x-show="isLoading" class="flex flex-col items-center justify-center py-32" x-cloak>
+                    <svg class="animate-spin h-12 w-12 text-blue-600 mb-4" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <p class="text-sm font-bold text-slate-500 uppercase tracking-wider animate-pulse">Fetching licensing data...</p>
                 </div>
+            <div class="max-w-7xl mx-auto">
+                
+                <!-- FULL PAGE LOADER -->
+                
 
+                <!-- ACTUAL CONTENT (Hidden while loading) -->
+                <div x-show="true" class="space-y-8" x-cloak>
+                    
+                    <!-- 4-Column Balance Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                        <!-- Available Slots -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-blue-600 mb-1">Available</p>
+                            <div class="text-3xl font-black text-slate-900" x-text="wallet.available_slots || 0">0</div>
+                            <p class="text-xs text-slate-500 mt-2">Ready to be assigned to exam sessions.</p>
+                        </div>
 
-                <!-- Pending Payments (Requery Section) -->
-                <div x-show="pending_payments.length > 0" class="bg-amber-50 border border-amber-200 shadow-sm sm:rounded-2xl overflow-hidden mb-8" x-cloak>
-                    <div class="px-6 py-4 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
-                            <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            Pending Payments (Action Required)
-                        </h3>
+                        <!-- Escrowed Slots -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Escrowed</p>
+                            <div class="text-3xl font-black text-slate-900" x-text="wallet.escrow_slots || 0">0</div>
+                            <p class="text-xs text-slate-500 mt-2">Locked for pending examinations.</p>
+                        </div>
+                        
+                        <!-- Used Slots -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-rose-600 mb-1">Total Used</p>
+                            <div class="text-3xl font-black text-slate-900" x-text="wallet.used_slots || 0">0</div>
+                            <p class="text-xs text-slate-500 mt-2">Permanently deducted from synced exams.</p>
+                        </div>
+
+                        <!-- Lifetime Total -->
+                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
+                            <div class="absolute top-0 right-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
+                            <p class="text-xs font-bold uppercase tracking-wider text-emerald-600 mb-1">Lifetime Volume</p>
+                            <div class="text-3xl font-black text-slate-900" x-text="wallet.total_lifetime_slots || 0">0</div>
+                            <p class="text-xs text-slate-500 mt-2">Total slots purchased to date.</p>
+                        </div>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <template x-for="payment in pending_payments" :key="payment.id">
-                            <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 transition-all hover:shadow-md">
-                                <div>
-                                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reference: <span class="text-slate-900 font-mono" x-text="payment.reference"></span></p>
-                                    <p class="text-sm font-medium text-slate-700">
-                                        Attempted to purchase <strong class="text-slate-900" x-text="payment.slots_requested"></strong> slots for <strong class="text-slate-900" x-text="formatNaira(payment.amount_expected)"></strong>.
-                                    </p>
+
+                    <!-- Pending Payments (Requery Section) -->
+                    <div x-show="pending_payments.length > 0" class="bg-amber-50 border border-amber-200 shadow-sm sm:rounded-2xl overflow-hidden mb-8">
+                        <div class="px-6 py-4 border-b border-amber-200 bg-amber-100/50 flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-amber-900 uppercase tracking-wider flex items-center gap-2">
+                                <svg class="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Pending Payments (Action Required)
+                            </h3>
+                        </div>
+                        <div class="p-6 space-y-4">
+                            <template x-for="payment in pending_payments" :key="payment.id">
+                                <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4 transition-all hover:shadow-md">
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reference: <span class="text-slate-900 font-mono" x-text="payment.reference"></span></p>
+                                        <p class="text-sm font-medium text-slate-700">
+                                            Attempted to purchase <strong class="text-slate-900" x-text="payment.slots_requested"></strong> slots for <strong class="text-slate-900" x-text="formatNaira(payment.amount_expected)"></strong>.
+                                        </p>
+                                    </div>
+                                    <button @click="verifyPaystackTransaction(payment.reference)" class="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                        Requery Status
+                                    </button>
                                 </div>
-                                <button @click="verifyPaystackTransaction(payment.reference)" class="w-full sm:w-auto px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-sm">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                    Requery Status
-                                </button>
-                            </div>
-                        </template>
+                            </template>
+                        </div>
                     </div>
-                </div>
-                <!-- Transaction Ledger History -->
-                <div class="bg-white shadow-sm sm:rounded-2xl overflow-hidden border border-slate-200">
-                    <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
-                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Payment & Slot Ledger History</h3>
+
+                    <!-- Transaction Ledger History -->
+                    <div class="bg-white shadow-sm sm:rounded-2xl overflow-hidden border border-slate-200">
+                        <div class="px-6 py-5 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+                            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Payment & Slot Ledger History</h3>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-slate-200">
+                                <thead class="bg-white">
+                                    <tr>
+                                        <th class="py-3.5 pl-6 pr-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
+                                        <th class="px-3 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Description</th>
+                                        <th class="px-3 py-3.5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Slots</th>
+                                        <th class="px-3 py-3.5 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Amount Paid</th>
+                                        <th class="px-3.5 py-3.5 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 bg-white">
+                                    <template x-for="log in ledger" :key="log.id">
+                                        <tr class="hover:bg-slate-50/80 transition-colors">
+                                            <td class="whitespace-nowrap py-4 pl-6 pr-3">
+                                                <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
+                                                      :class="{
+                                                          'bg-emerald-100 text-emerald-700': log.transaction_type === 'purchase',
+                                                          'bg-amber-100 text-amber-700': log.transaction_type === 'escrow_hold',
+                                                          'bg-blue-100 text-blue-700': log.transaction_type === 'escrow_refund',
+                                                          'bg-slate-100 text-slate-600': log.transaction_type === 'deduction'
+                                                      }"
+                                                      x-text="log.transaction_type"></span>
+                                            </td>
+                                            <td class="px-3 py-4 text-sm font-medium text-slate-800" x-text="log.description"></td>
+                                            <td class="whitespace-nowrap px-3 py-4 text-center text-sm font-bold"
+                                                :class="log.transaction_type === 'deduction' ? 'text-red-600' : 'text-emerald-600'">
+                                                <span x-text="log.transaction_type === 'deduction' ? '-' + log.slots_amount : '+' + log.slots_amount"></span>
+                                            </td>
+                                            <td class="whitespace-nowrap px-3 py-4 text-right text-sm font-bold text-slate-900" x-text="formatNaira(log.naira_value)"></td>
+                                            <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm text-slate-500" x-text="log.created_at"></td>
+                                        </tr>
+                                    </template>
+                                    
+                                    <tr x-show="ledger.length === 0">
+                                        <td colspan="5" class="py-12 text-center text-sm text-slate-500">
+                                            No ledger transactions recorded yet. Purchase slots to begin.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200">
-                            <thead class="bg-white">
-                                <tr>
-                                    <th class="py-3.5 pl-6 pr-3 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Type</th>
-                                    <th class="px-3 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Description</th>
-                                    <th class="px-3 py-3.5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Slots</th>
-                                    <th class="px-3 py-3.5 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Amount Paid</th>
-                                    <th class="px-3.5 py-3.5 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 bg-white">
-                                <template x-for="log in ledger" :key="log.id">
-                                    <tr class="hover:bg-slate-50/80 transition-colors">
-                                        <td class="whitespace-nowrap py-4 pl-6 pr-3">
-                                            <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
-                                                  :class="{
-                                                      'bg-emerald-100 text-emerald-700': log.transaction_type === 'purchase',
-                                                      'bg-amber-100 text-amber-700': log.transaction_type === 'escrow_hold',
-                                                      'bg-blue-100 text-blue-700': log.transaction_type === 'escrow_refund',
-                                                      'bg-slate-100 text-slate-600': log.transaction_type === 'deduction'
-                                                  }"
-                                                  x-text="log.transaction_type"></span>
-                                        </td>
-                                        <td class="px-3 py-4 text-sm font-medium text-slate-800" x-text="log.description"></td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-center text-sm font-bold"
-                                            :class="log.transaction_type === 'deduction'  ? 'text-red-600' : 'text-emerald-600'">
-                                            <span x-text="log.transaction_type === 'deduction' ? '-' + log.slots_amount :  '+' + log.slots_amount"></span>
-                                        </td>
-                                        <td class="whitespace-nowrap px-3 py-4 text-right text-sm font-bold text-slate-900" x-text="formatNaira(log.naira_value)"></td>
-                                        <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm text-slate-500" x-text="log.created_at"></td>
-                                    </tr>
-                                </template>
-                                
-                                <tr x-show="ledger.length === 0">
-                                    <td colspan="5" class="py-12 text-center text-sm text-slate-500">
-                                        No ledger transactions recorded yet. Purchase slots to begin.
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                </div> <!-- End of Content Wrapper -->
 
             </div>
         </main>
@@ -264,6 +279,7 @@ include '../views/layouts/header.php'
     <script>
         function licensingController() {
             return {
+                isLoading: true,
                 wallet: { available_slots: 0, escrow_slots: 0, used_slots: 0, total_lifetime_slots: 0 },
                 ledger: [],
                 tiers: [],
@@ -294,6 +310,7 @@ include '../views/layouts/header.php'
                 },
 
             async fetchLicensingData() {
+                this.isLoading = true;
                     try {
                         let res = await fetch(this.getBaseApiUrl() + '/api/admin/licensing/data');
                         let data = await res.json();
@@ -311,7 +328,9 @@ include '../views/layouts/header.php'
                                 price: parseFloat(t.price_per_slot)
                             }));
                         }
-                    } catch(e) { console.error("Error fetching licensing data"); }
+                    } catch(e) { console.error("Error fetching licensing data"); } finally {
+                        this.isLoading = false; // Hide loader when done
+                    }
                 },
 
                 openPurchaseModal() {

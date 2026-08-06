@@ -46,6 +46,18 @@ include '../views/layouts/header.php';
                     </div>
                 </div>
             </div>
+
+            <a :href="getBaseApiUrl() + '/admin/licensing'" class="hidden sm:flex items-center gap-3 px-4 py-2 bg-slate-50 hover:bg-white hover:shadow-md border border-slate-200 rounded-xl transition-all group cursor-pointer" title="Manage Licensing">
+                <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                </div>
+                <div class="flex flex-col text-left">
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-none">Available Slots</span>
+                    <div class="mt-0.5">
+                        <span class="text-sm font-extrabold text-slate-900" x-text="cachedAvailableSlots"></span> 
+                    </div>
+                </div>
+            </a>
         </header>
 
         <!-- Scrollable Page Content -->
@@ -465,6 +477,7 @@ include '../views/layouts/header.php';
                 isUploadingQuestions: false,
                 passwordStrategy: 'generate',
                 toast: { visible: false, message: '' },
+                cachedAvailableSlots: '...',
                 
                 sessionData: { title: 'Loading...', date: '...', department: '...' },
                 students: [],
@@ -520,6 +533,7 @@ include '../views/layouts/header.php';
                             this.students = data.payload.students;
                             this.availableExaminers = data.payload.availableExaminers;
                             this.stations = data.payload.stations;
+                            this.cachedAvailableSlots = data.payload.availableSlots ?? 0;
                         } else { alert(data.message); }
                     } catch (error) { this.showToast('Network error loading data.'); }
                 },

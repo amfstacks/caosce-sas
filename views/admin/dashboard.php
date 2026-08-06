@@ -12,6 +12,7 @@ include '../views/layouts/header.php';
     <!-- Main Content Area -->
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
         
+
         <!-- Topbar -->
         <header class="bg-white h-20 border-b border-slate-200 flex items-center justify-between px-8 sm:px-10 flex-shrink-0">
             <div>
@@ -20,6 +21,32 @@ include '../views/layouts/header.php';
             </div>
             
             <div class="flex items-center gap-6">
+                
+                <!-- NEW: Live Licensing Wallet Badge -->
+                <a :href="getBaseApiUrl() + '/admin/licensing'" class="hidden sm:flex items-center gap-3 px-4 py-2 bg-slate-50 hover:bg-white hover:shadow-md border border-slate-200 rounded-xl transition-all group cursor-pointer">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    </div>
+                    
+                    <div class="flex flex-col text-left">
+                        <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider leading-none">Slot Wallet</span>
+                        
+                        <!-- Loading State -->
+                        <div x-show="isFetchingLicensing" class="flex items-center gap-1.5 mt-1">
+                            <svg class="animate-spin h-3 w-3 text-blue-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span class="text-xs font-bold text-blue-500">Fetching licensing data...</span>
+                        </div>
+                        
+                        <!-- Loaded State -->
+                        <div x-show="!isFetchingLicensing" class="mt-0.5" x-cloak>
+                            <span class="text-sm font-extrabold text-slate-900" x-text="wallet.available_slots"></span> 
+                            <span class="text-xs font-bold text-emerald-600 ml-1">Available</span>
+                        </div>
+                    </div>
+                </a>
+
+                <div class="w-px h-8 bg-slate-200 hidden sm:block"></div>
+
                 <!-- User Profile & Action -->
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-600 font-bold">
@@ -172,6 +199,8 @@ include '../views/layouts/header.php';
         function dashboardController() {
             return {
                 isLoading: true,
+                isFetchingLicensing: true, // NEW: Loading state for wallet
+                wallet: { available_slots: 0 }, // NEW: Wallet data store
                 stats: {
                     activeSessions: 0,
                     boundDevices: 0,
@@ -183,6 +212,7 @@ include '../views/layouts/header.php';
                 init() {
                     this.checkLocalSyncs();
                     this.fetchDashboardStats();
+                    this.fetchLicensingData();
                     setInterval(() => { this.checkLocalSyncs(); }, 3000);
                 },
 
@@ -195,6 +225,20 @@ include '../views/layouts/header.php';
                 checkLocalSyncs() {
                     let queue = JSON.parse(localStorage.getItem('caosce_sync_queue') || '[]');
                     this.stats.pendingSyncs = queue.length;
+                },
+                // NEW: Background licensing fetch
+                async fetchLicensingData() {
+                    try {
+                        let res = await fetch(this.getBaseApiUrl() + '/api/admin/licensing/data');
+                        let data = await res.json();
+                        if(data.success) {
+                            this.wallet.available_slots = data.payload.wallet.available_slots;
+                        }
+                    } catch(e) { 
+                        console.error("Error fetching licensing data"); 
+                    } finally {
+                        this.isFetchingLicensing = false;
+                    }
                 },
 
                 async fetchDashboardStats() {

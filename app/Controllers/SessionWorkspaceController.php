@@ -18,7 +18,7 @@ class SessionWorkspaceController {
 
         // 1. Fetch Session Data
         $this->db->query("
-            SELECT es.id, es.title, es.scheduled_date as date, d.name as department 
+            SELECT es.id, es.title, es.scheduled_date as date, d.name as department,es.school_id 
             FROM exam_sessions es 
             JOIN departments d ON es.department_id = d.id 
             WHERE es.id = :id
@@ -82,13 +82,19 @@ class SessionWorkspaceController {
             $station['questions'] = $questions;
         }
 
+        $this->db->query("SELECT available_slots FROM school_slot_wallets WHERE school_id = :sch LIMIT 1");
+        $this->db->bind(':sch', $session['school_id']);
+        $wallet = $this->db->single();
+        $availableSlots = $wallet ? (int)$wallet['available_slots'] : 0;
+
         return json_encode([
             'success' => true,
             'payload' => [
                 'sessionData' => $session,
                 'students' => $students,
                 'availableExaminers' => $examiners,
-                'stations' => $stations
+                'stations' => $stations,
+                'availableSlots' => $availableSlots
             ]
         ]);
     }

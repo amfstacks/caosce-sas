@@ -39,6 +39,11 @@ $tenantUrl = BASE_PATH . '/' . (defined('CURRENT_TENANT_SLUG') && CURRENT_TENANT
             Exam Sessions
         </a>
 
+        <a href="<?php echo $tenantUrl; ?>/admin/licensing" 
+   class="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 <?php echo $activeMenu === 'licensing' ? 'bg-blue-600/10 text-blue-400 font-semibold' : 'hover:bg-slate-800/50 hover:text-white'; ?>">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+    Licensing & Wallet
+</a>
 
         <div class="pt-6 pb-2">
             <p class="px-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Hardware & Sync</p>

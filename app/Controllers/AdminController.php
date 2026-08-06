@@ -239,13 +239,14 @@ class AdminController {
                     // 1=Procedure, 2=CBT, 3=Procedure, 4=CBT...
                     $stationType = ($i % 2 == 0) ? 'cbt' : 'procedure'; 
                     
-                    $this->db->query("INSERT INTO stations (id, exam_session_id, station_type, title, time_limit_minutes, order_sequence, is_confirmed) VALUES (:st_id, :sess_id, :type, :st_title, :time_limit, :seq, 0)");
+                    $this->db->query("INSERT INTO stations (id, exam_session_id, station_type, title, time_limit_minutes, order_sequence,school_id, is_confirmed) VALUES (:st_id, :sess_id, :type, :st_title, :time_limit, :seq,:school_id, 0)");
                     $this->db->bind(':st_id', $stationId);
                     $this->db->bind(':sess_id', $id);
                     $this->db->bind(':type', $stationType);
                     $this->db->bind(':st_title', ''); // Empty title to start
                     $this->db->bind(':time_limit', 10); // Default 10 mins
                     $this->db->bind(':seq', $i);
+                    $this->db->bind(':school_id', $schoolId);
                     $this->db->execute();
                 }
             }

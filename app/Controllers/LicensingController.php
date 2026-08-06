@@ -3,7 +3,7 @@ class LicensingController {
     private $db;
     
     // Replace this with your actual Paystack Secret Key (ideally from a config file)
-    private $paystackSecretKey = 'sk_test_fdbad1bf0761399f90464bd283dbe5ab1b41548f'; 
+    private $paystackSecretKey = ''; 
 
     public function __construct() {
         $this->db = new Database();
@@ -90,7 +90,7 @@ class LicensingController {
     // }
 
     // --- 1. FETCH LICENSING DATA & CALCULATE WALLET ---
-    public function getLicensingData() {
+    public function getLicensingData_old_heavycomputaion() {
         $schoolId = $this->getSchoolId();
         if (!$schoolId) {
             echo json_encode(['success' => false, 'message' => 'Unauthorized']);
@@ -184,6 +184,89 @@ class LicensingController {
 
             // ==========================================
             // STEP C: FETCH DATA FOR THE UI
+            // ==========================================
+
+            // Fetch recent successful ledger logs
+            $this->db->query("SELECT * FROM slot_ledger_logs WHERE school_id = :sch ORDER BY created_at DESC LIMIT 50");
+            $this->db->bind(':sch', $schoolId);
+            $ledger = $this->db->resultSet();
+
+            // Fetch pending payment attempts for the "Requery" UI
+            $this->db->query("SELECT * FROM payment_transactions WHERE school_id = :sch AND status = 'pending' ORDER BY created_at DESC");
+            $this->db->bind(':sch', $schoolId);
+            $pendingPayments = $this->db->resultSet();
+
+            // Fetch Tiers
+            $this->db->query("SELECT tier_name, min_slots, max_slots, price_per_slot FROM pricing_tiers WHERE is_active = 1 ORDER BY min_slots ASC");
+            $tiers = $this->db->resultSet();
+
+            echo json_encode([
+                'success' => true,
+                'payload' => [
+                    'wallet' => $wallet,
+                    'ledger' => $ledger,
+                    'pending_payments' => $pendingPayments,
+                    'tiers' => $tiers
+                ]
+            ]);
+            exit;
+
+        } catch (Exception $e) {
+            echo json_encode(['success' => false, 'message' => 'DB Error: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
+    public function getLicensingData() {
+        $schoolId = $this->getSchoolId();
+        if (!$schoolId) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        try {
+            // ==========================================
+            // STEP A: AGGREGATE THE WALLET BALANCE
+            // ==========================================
+            // Transactions are now beautifully simple: 
+            // 'purchase' (+), 'refund' (+), 'usage' (-)
+
+            $this->db->query("
+                SELECT 
+                    SUM(CASE WHEN transaction_type IN ('purchase', 'refund') THEN slots_amount ELSE 0 END) -
+                    SUM(CASE WHEN transaction_type = 'usage' THEN slots_amount ELSE 0 END) AS calculated_available,
+                    
+                    SUM(CASE WHEN transaction_type = 'usage' THEN slots_amount ELSE 0 END) - 
+                    SUM(CASE WHEN transaction_type = 'refund' THEN slots_amount ELSE 0 END) AS calculated_used,
+                    
+                    SUM(CASE WHEN transaction_type = 'purchase' THEN slots_amount ELSE 0 END) AS calculated_lifetime
+                FROM slot_ledger_logs 
+                WHERE school_id = :sch
+            ");
+            $this->db->bind(':sch', $schoolId);
+            $aggregates = $this->db->single();
+
+            $wallet = [
+                'available_slots' => max(0, (int)($aggregates['calculated_available'] ?? 0)),
+                'used_slots' => max(0, (int)($aggregates['calculated_used'] ?? 0)),
+                'total_lifetime_slots' => max(0, (int)($aggregates['calculated_lifetime'] ?? 0)),
+                'escrow_slots' => 0 // Kept at 0 so your DB schema doesn't break if the column still exists
+            ];
+
+            // Update the cached wallet table just to keep it in sync for fast reads elsewhere
+            $this->db->query("
+                INSERT INTO school_slot_wallets (id, school_id, available_slots, escrow_slots, total_lifetime_slots) 
+                VALUES (:id, :sch, :avail, 0, :life)
+                ON DUPLICATE KEY UPDATE available_slots = :avail, escrow_slots = 0, total_lifetime_slots = :life
+            ");
+            $this->db->bind(':id', UuidHelper::v4());
+            $this->db->bind(':sch', $schoolId);
+            $this->db->bind(':avail', $wallet['available_slots']);
+            $this->db->bind(':life', $wallet['total_lifetime_slots']);
+            $this->db->execute();
+
+            // ==========================================
+            // STEP B: FETCH DATA FOR THE UI
             // ==========================================
 
             // Fetch recent successful ledger logs

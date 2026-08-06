@@ -18,6 +18,14 @@ include '../views/layouts/header.php';
         .tab-enter { transition: opacity 0.3s ease-out; }
         .tab-enter-start { opacity: 0; }
         .tab-enter-end { opacity: 1; }
+
+        /* NEW: Print specific styles */
+        @media print {
+            body * { visibility: hidden; }
+            #roster-print-area, #roster-print-area * { visibility: visible; }
+            #roster-print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            .print-hide { display: none !important; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased flex h-screen overflow-hidden" x-data="workspaceController()" x-cloak>
@@ -126,33 +134,58 @@ include '../views/layouts/header.php';
                     </div>
 
                     <!-- Student Data Table -->
-                    <div class="bg-white shadow-sm sm:rounded-xl border border-slate-200 overflow-hidden">
+                    <!-- Search and Export Toolbar -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 mb-4 print-hide">
+                        <div class="relative w-full sm:w-1/3">
+                            <input type="text" x-model="searchQuery" placeholder="Search by name or matric..." class="block w-full rounded-lg border-slate-300 py-2.5 pl-10 pr-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm border">
+                            <svg class="w-5 h-5 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <button @click="exportToCSV()" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                Excel / CSV
+                            </button>
+                            <button @click="printRoster()" class="flex-1 sm:flex-none inline-flex justify-center items-center gap-2 rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-bold text-slate-700 border border-slate-200 hover:bg-slate-200 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                                Print / PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Student Data Table (Wrapped for printing) -->
+                    <div id="roster-print-area" class="bg-white shadow-sm sm:rounded-xl border border-slate-200 overflow-hidden">
+                        
+                        <!-- Print-only header -->
+                        <div class="hidden print:block p-6 border-b border-slate-200">
+                            <h2 class="text-2xl font-bold text-slate-900" x-text="sessionData.title + ' - Authorized Roster'"></h2>
+                            <p class="text-sm text-slate-500 mt-1" x-text="'Exported on: ' + new Date().toLocaleString()"></p>
+                        </div>
+
                         <table class="min-w-full divide-y divide-slate-200">
                             <thead class="bg-slate-50 border-b border-slate-200">
                                 <tr>
                                     <th scope="col" class="py-4 pl-4 pr-3 text-left text-xs font-bold uppercase tracking-wide text-slate-500 sm:pl-6">Matric Number</th>
                                     <th scope="col" class="px-3 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Full Name</th>
                                     <th scope="col" class="px-3 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-500">Password</th>
-                                    <th scope="col" class="relative py-4 pl-3 pr-4 sm:pr-6"><span class="sr-only">Actions</span></th>
+                                    <th scope="col" class="relative py-4 pl-3 pr-4 sm:pr-6 print-hide"><span class="sr-only">Actions</span></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 bg-white">
-                                <template x-for="student in students" :key="student.id">
+                                <!-- CHANGED: x-for now uses filteredStudents -->
+                                <template x-for="student in filteredStudents" :key="student.id">
                                     <tr class="hover:bg-slate-50/50 transition-colors">
                                         <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-bold text-slate-900 sm:pl-6" x-text="student.matric"></td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-600" x-text="student.name"></td>
                                         <td class="whitespace-nowrap px-3 py-4 text-sm text-slate-500 font-mono" x-text="student.password"></td>
-                                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6 print-hide">
                                             <button @click="openStudentModal(student)" class="text-blue-600 hover:text-blue-900 mr-4 font-semibold">Edit</button>
                                             <button @click="deleteStudent(student.id)" class="text-red-500 hover:text-red-700 font-semibold">Remove</button>
                                         </td>
                                     </tr>
                                 </template>
-                                <tr x-show="students.length === 0">
+                                <tr x-show="filteredStudents.length === 0">
                                     <td colspan="4" class="py-12 text-center">
-                                        <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                        <h3 class="mt-2 text-sm font-medium text-slate-900">No students enrolled</h3>
-                                        <p class="mt-1 text-sm text-slate-500">Get started by uploading a CSV or adding a student manually.</p>
+                                        <p class="text-sm font-medium text-slate-500" x-text="searchQuery !== '' ? 'No students match your search.' : 'No students enrolled. Get started by uploading a CSV or adding a student manually.'"></p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -478,6 +511,7 @@ include '../views/layouts/header.php';
                 passwordStrategy: 'generate',
                 toast: { visible: false, message: '' },
                 cachedAvailableSlots: '...',
+                searchQuery: '',
                 
                 sessionData: { title: 'Loading...', date: '...', department: '...' },
                 students: [],
@@ -503,6 +537,39 @@ include '../views/layouts/header.php';
                     const tenantSlug = '<?php echo CURRENT_TENANT_SLUG ?? ""; ?>';
                     let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
                     return tenantSlug ? `${basePath}/${tenantSlug}` : basePath;
+                },
+                get filteredStudents() {
+                    if (this.searchQuery.trim() === '') return this.students;
+                    const query = this.searchQuery.toLowerCase();
+                    return this.students.filter(student => 
+                        (student.name && student.name.toLowerCase().includes(query)) ||
+                        (student.matric && student.matric.toLowerCase().includes(query))
+                    );
+                },
+                // <-- NEW: CSV/Excel Export function
+                exportToCSV() {
+                    if (this.filteredStudents.length === 0) return alert('No students to export.');
+                    
+                    let csvContent = "data:text/csv;charset=utf-8,";
+                    csvContent += "Matric Number,Full Name,Password\n"; 
+                    
+                    this.filteredStudents.forEach(student => {
+                        let safeName = student.name.replace(/"/g, '""'); // Escape quotes
+                        csvContent += `${student.matric},"${safeName}",${student.password}\n`;
+                    });
+                    
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", `Roster_${this.sessionData.title || 'Export'}.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                },
+
+                // <-- NEW: Print/PDF function
+                printRoster() {
+                    window.print();
                 },
 
                 // --- NEW Smart Back Behavior ---

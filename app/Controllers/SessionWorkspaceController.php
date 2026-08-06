@@ -100,7 +100,7 @@ class SessionWorkspaceController {
     }
 
     // --- 1. Save or Update Student ---
-    public function saveStudent($inputData) {
+    public function saveStudent_old_before_availaibility_check($inputData) {
         if (empty($inputData['matric']) || empty($inputData['name']) || empty($inputData['session_id'])) {
             return json_encode(['success' => false, 'message' => 'Missing required fields.']);
         }
@@ -173,19 +173,182 @@ class SessionWorkspaceController {
 
         return json_encode(['success' => true]);
     }
+    // --- 1. Save or Update Student ---
+  
+    // --- 1. Save or Update Student ---
+    public function saveStudent($inputData) {
+        if (empty($inputData['matric']) || empty($inputData['name']) || empty($inputData['session_id'])) {
+            return json_encode(['success' => false, 'message' => 'Missing required fields.']);
+        }
+
+        $sessionId = $inputData['session_id'];
+        
+        // Get School ID and Department ID from the session
+        $this->db->query("SELECT school_id, department_id FROM exam_sessions WHERE id = :session_id");
+        $this->db->bind(':session_id', $sessionId);
+        $session = $this->db->single();
+        
+        if (!$session) return json_encode(['success' => false, 'message' => 'Invalid session.']);
+
+        $providedStudentId = $inputData['id'] ?? null;
+        $passwordHash = password_hash($inputData['password'], PASSWORD_DEFAULT);
+
+        // --- STEP 1: Determine real Student ID and if they are New ---
+        $resolvedStudentId = null;
+        $isBrandNewStudent = false;
+
+        if (!$providedStudentId || is_numeric($providedStudentId)) { 
+            // Check if matric number already exists in this school
+            $this->db->query("SELECT id FROM students WHERE school_id = :school_id AND matric_number = :matric");
+            $this->db->bind(':school_id', $session['school_id']);
+            $this->db->bind(':matric', trim($inputData['matric']));
+            $existingStudent = $this->db->single();
+
+            if ($existingStudent) {
+                $resolvedStudentId = $existingStudent['id'];
+            } else {
+                $isBrandNewStudent = true;
+            }
+        } else {
+            $resolvedStudentId = $providedStudentId;
+        }
+
+        // --- STEP 2: Check if they need to consume a slot (Enrollment Check) ---
+        $needsEnrollment = false;
+        
+        if ($resolvedStudentId) {
+            $this->db->query("SELECT id FROM exam_session_student WHERE exam_session_id = :session_id AND student_id = :student_id");
+            $this->db->bind(':session_id', $sessionId);
+            $this->db->bind(':student_id', $resolvedStudentId);
+            if (!$this->db->single()) {
+                $needsEnrollment = true;
+            }
+        } else {
+            // Brand new students always need enrollment
+            $needsEnrollment = true;
+        }
+
+        // --- STEP 3: WALLET PRE-CHECK (Abort before ANY database inserts) ---
+        if ($needsEnrollment) {
+            $this->db->query("SELECT available_slots FROM school_slot_wallets WHERE school_id = :sch LIMIT 1");
+            $this->db->bind(':sch', $session['school_id']);
+            $wallet = $this->db->single();
+            $availableSlots = $wallet ? (int)$wallet['available_slots'] : 0;
+
+            if ($availableSlots <= 0) {
+                return json_encode(['success' => false, 'message' => 'Insufficient exam slots. Please purchase more slots to add this student.']);
+            }
+        }
+
+        // --- STEP 4: Safe to Insert or Update Student ---
+        if ($isBrandNewStudent) {
+            $resolvedStudentId = UuidHelper::v4();
+            $this->db->query("INSERT INTO students (id, school_id, department_id, matric_number, full_name, password_hash, raw_password) VALUES (:id, :school, :dept, :matric, :name, :hash, :raw)");
+            $this->db->bind(':id', $resolvedStudentId);
+            $this->db->bind(':school', $session['school_id']);
+            $this->db->bind(':dept', $session['department_id']);
+            $this->db->bind(':matric', trim($inputData['matric']));
+            $this->db->bind(':name', trim($inputData['name']));
+            $this->db->bind(':hash', $passwordHash);
+            $this->db->bind(':raw', $inputData['password']);
+            $this->db->execute();
+        } else {
+            // Edit existing student record
+            $this->db->query("UPDATE students SET matric_number = :matric, full_name = :name, password_hash = :hash, raw_password = :raw WHERE id = :id");
+            $this->db->bind(':matric', trim($inputData['matric']));
+            $this->db->bind(':name', trim($inputData['name']));
+            $this->db->bind(':hash', $passwordHash);
+            $this->db->bind(':raw', $inputData['password']);
+            $this->db->bind(':id', $resolvedStudentId);
+            $this->db->execute();
+        }
+
+        // --- STEP 5: Perform Enrollment and Direct Deduction ---
+        if ($needsEnrollment) {
+            // Enroll Student
+            $enrollId = UuidHelper::v4();
+            $this->db->query("INSERT INTO exam_session_student (id, exam_session_id, student_id, status) VALUES (:id, :session_id, :student_id, 'pending')");
+            $this->db->bind(':id', $enrollId);
+            $this->db->bind(':session_id', $sessionId);
+            $this->db->bind(':student_id', $resolvedStudentId);
+            $this->db->execute();
+
+            // Direct Usage Deduction in Ledger
+            $ledgerId = UuidHelper::v4();
+            $this->db->query("INSERT INTO slot_ledger_logs (id, school_id, transaction_type, slots_amount, naira_value, reference_id, description) VALUES (:id, :sch, 'usage', 1, 0.00, :ref, 'Slot consumed for student enrollment')");
+            $this->db->bind(':id', $ledgerId);
+            $this->db->bind(':sch', $session['school_id']);
+            $this->db->bind(':ref', $sessionId);
+            $this->db->execute();
+
+            // Quickly update cached wallet so UI reflects it immediately
+            $this->db->query("UPDATE school_slot_wallets SET available_slots = available_slots - 1 WHERE school_id = :sch");
+            $this->db->bind(':sch', $session['school_id']);
+            $this->db->execute();
+        }
+
+        return json_encode(['success' => true]);
+    }
 
     // --- 2. Remove Student from Session ---
-    public function removeStudent($inputData) {
+  public function removeStudent($inputData) {
         if (empty($inputData['student_id']) || empty($inputData['session_id'])) {
-            return json_encode(['success' => false]);
+            return json_encode(['success' => false, 'message' => 'Missing required parameters.']);
         }
+
+        $sessionId = $inputData['session_id'];
+        $studentId = $inputData['student_id'];
+
+        // 1. Get School ID from the session for the refund
+        $this->db->query("SELECT school_id FROM exam_sessions WHERE id = :session_id");
+        $this->db->bind(':session_id', $sessionId);
+        $session = $this->db->single();
         
-        // We only delete the enrollment record, preserving the student for other exams
-        $this->db->query("DELETE FROM exam_session_student WHERE exam_session_id = :session_id AND student_id = :student_id");
-        $this->db->bind(':session_id', $inputData['session_id']);
-        $this->db->bind(':student_id', $inputData['student_id']);
+        if (!$session) return json_encode(['success' => false, 'message' => 'Invalid session context.']);
+        $schoolId = $session['school_id'];
+
+        // 2. SAFETY CHECK: Did the student already take the exam?
+        $this->db->query("SELECT id FROM student_responses WHERE exam_session_id = :session_id AND student_id = :student_id LIMIT 1");
+        $this->db->bind(':session_id', $sessionId);
+        $this->db->bind(':student_id', $studentId);
         
-        return json_encode(['success' => $this->db->execute()]);
+        if ($this->db->single()) {
+            return json_encode([
+                'success' => false, 
+                'message' => 'Cannot remove: This student has already submitted exam responses for this session.'
+            ]);
+        }
+
+        // 3. Safe to Remove and Refund
+        $this->db->beginTransaction();
+
+        try {
+            // Delete the enrollment record (leaves the student in the system for other exams)
+            $this->db->query("DELETE FROM exam_session_student WHERE exam_session_id = :session_id AND student_id = :student_id");
+            $this->db->bind(':session_id', $sessionId);
+            $this->db->bind(':student_id', $studentId);
+            $this->db->execute();
+
+            // Issue the Refund to the Ledger
+            $ledgerId = UuidHelper::v4();
+            $this->db->query("INSERT INTO slot_ledger_logs (id, school_id, transaction_type, slots_amount, naira_value, reference_id, description) VALUES (:id, :sch, 'refund', 1, 0.00, :ref, 'Slot refunded: Student removed from roster')");
+            $this->db->bind(':id', $ledgerId);
+            $this->db->bind(':sch', $schoolId);
+            $this->db->bind(':ref', $sessionId);
+            $this->db->execute();
+
+            // Restore the slot to the cached wallet
+            $this->db->query("UPDATE school_slot_wallets SET available_slots = available_slots + 1 WHERE school_id = :sch");
+            $this->db->bind(':sch', $schoolId);
+            $this->db->execute();
+
+            $this->db->commit();
+            return json_encode(['success' => true]);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return json_encode(['success' => false, 'message' => 'Database error during removal.']);
+        }
     }
 
     // --- 3. Save Station Configuration & Question Bank ---
@@ -404,7 +567,7 @@ class SessionWorkspaceController {
 
     // --- 4. Bulk Upload CSV Roster ---
     // --- 4. Bulk Upload CSV Roster ---
-    public function uploadBulkRoster($inputData = null) {
+    public function uploadBulkRoster_old_before_availability_check($inputData = null) {
         $sessionId = $_POST['session_id'] ?? null;
         $passwordStrategy = $_POST['password_strategy'] ?? 'generate'; // 'matric' or 'generate'
         
@@ -520,6 +683,169 @@ class SessionWorkspaceController {
             $this->db->commit();
             fclose($handle);
             return json_encode(['success' => true]);
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            fclose($handle);
+            return json_encode(['success' => false, 'message' => 'Database error during CSV import.']);
+        }
+    }
+
+    public function uploadBulkRoster($inputData = null) {
+        $sessionId = $_POST['session_id'] ?? null;
+        $passwordStrategy = $_POST['password_strategy'] ?? 'generate'; // 'matric' or 'generate'
+        
+        if (!$sessionId || !isset($_FILES['roster_file'])) {
+            return json_encode(['success' => false, 'message' => 'Missing file or session ID.']);
+        }
+
+        $file = $_FILES['roster_file'];
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['success' => false, 'message' => 'File upload error.']);
+        }
+
+        // Get session context
+        $this->db->query("SELECT school_id, department_id FROM exam_sessions WHERE id = :id");
+        $this->db->bind(':id', $sessionId);
+        $session = $this->db->single();
+        if (!$session) return json_encode(['success' => false, 'message' => 'Invalid session context.']);
+
+        $handle = fopen($file['tmp_name'], 'r');
+        $header = fgetcsv($handle);
+        if (!$header) {
+            fclose($handle);
+            return json_encode(['success' => false, 'message' => 'The CSV file is completely empty.']);
+        }
+
+        // $headerMap = [];
+        // foreach ($header as $index => $col) {
+        //     $headerMap[strtolower(trim($col))] = $index;
+        // }
+
+         $headerMap = [];
+        foreach ($header as $index => $col) {
+            // Strip hidden UTF-8 BOM characters that Excel adds to the first column
+            $cleanCol = preg_replace('/^\xEF\xBB\xBF/', '', $col);
+            $headerMap[strtolower(trim($cleanCol))] = $index;
+        }
+
+        if (!isset($headerMap['matric_no']) || !isset($headerMap['full_name']) || !isset($headerMap['password'])) {
+            fclose($handle);
+            return json_encode([
+                'success' => false, 
+                'message' => 'Upload Aborted: The CSV must contain exactly these headers: matric_no, full_name, password'
+            ]);
+        }
+
+        $idxMatric = $headerMap['matric_no'];
+        $idxName = $headerMap['full_name'];
+        $idxPass = $headerMap['password'];
+
+        $this->db->beginTransaction(); 
+
+        try {
+            // --- 1. GET CURRENT AVAILABLE SLOTS BEFORE IMPORT ---
+            $this->db->query("SELECT available_slots FROM school_slot_wallets WHERE school_id = :sch LIMIT 1");
+            $this->db->bind(':sch', $session['school_id']);
+            $wallet = $this->db->single();
+            $slotsRemaining = $wallet ? (int)$wallet['available_slots'] : 0;
+            
+            $newlyEnrolledCount = 0;
+            $skippedDueToLimits = false;
+
+            while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
+                $matric = trim($row[$idxMatric] ?? '');
+                $name = trim($row[$idxName] ?? '');
+                $csvPassword = trim($row[$idxPass] ?? '');
+                
+                if (empty($matric) || empty($name)) continue;
+
+                $rawPassword = $csvPassword;
+                if (empty($rawPassword)) {
+                    $rawPassword = ($passwordStrategy === 'matric') ? $matric : (string) rand(1000, 9999);
+                }
+                $passwordHash = password_hash($rawPassword, PASSWORD_DEFAULT);
+
+                // --- 2. UPSERT STUDENT RECORD ---
+                $this->db->query("SELECT id FROM students WHERE school_id = :school_id AND matric_number = :matric");
+                $this->db->bind(':school_id', $session['school_id']);
+                $this->db->bind(':matric', $matric);
+                $existing = $this->db->single();
+
+                if ($existing) {
+                    $studentId = $existing['id'];
+                    $this->db->query("UPDATE students SET full_name = :name, password_hash = :hash, raw_password = :raw WHERE id = :id");
+                    $this->db->bind(':name', $name);
+                    $this->db->bind(':hash', $passwordHash);
+                    $this->db->bind(':raw', $rawPassword);
+                    $this->db->bind(':id', $studentId);
+                    $this->db->execute();
+                } else {
+                    $studentId = UuidHelper::v4();
+                    $this->db->query("INSERT INTO students (id, school_id, department_id, matric_number, full_name, password_hash, raw_password) VALUES (:id, :school, :dept, :matric, :name, :hash, :raw)");
+                    $this->db->bind(':id', $studentId);
+                    $this->db->bind(':school', $session['school_id']);
+                    $this->db->bind(':dept', $session['department_id']);
+                    $this->db->bind(':matric', $matric);
+                    $this->db->bind(':name', $name);
+                    $this->db->bind(':hash', $passwordHash);
+                    $this->db->bind(':raw', $rawPassword);
+                    $this->db->execute();
+                }
+
+                // --- 3. CHECK ENROLLMENT & WALLET LIMIT ---
+                $this->db->query("SELECT id FROM exam_session_student WHERE exam_session_id = :sess AND student_id = :stu");
+                $this->db->bind(':sess', $sessionId);
+                $this->db->bind(':stu', $studentId);
+                
+                if (!$this->db->single()) { // Student is not enrolled yet
+                    
+                    if ($slotsRemaining <= 0) {
+                        $skippedDueToLimits = true;
+                        break; // STOP PARSING CSV: Wallet is empty!
+                    }
+
+                    // Enroll Student
+                    $enrollId = UuidHelper::v4();
+                    $this->db->query("INSERT INTO exam_session_student (id, exam_session_id, student_id, status) VALUES (:id, :sess, :stu, 'pending')");
+                    $this->db->bind(':id', $enrollId);
+                    $this->db->bind(':sess', $sessionId);
+                    $this->db->bind(':stu', $studentId);
+                    $this->db->execute();
+
+                    $slotsRemaining--;
+                    $newlyEnrolledCount++;
+                }
+            }
+
+            // --- 4. BULK USAGE LOGGING (NO ESCROW!) ---
+            if ($newlyEnrolledCount > 0) {
+                // Log the deduction in the ledger as 'usage'
+                $ledgerId = UuidHelper::v4();
+                $this->db->query("INSERT INTO slot_ledger_logs (id, school_id, transaction_type, slots_amount, naira_value, reference_id, description) VALUES (:id, :sch, 'usage', :slots, 0.00, :ref, :desc)");
+                $this->db->bind(':id', $ledgerId);
+                $this->db->bind(':sch', $session['school_id']);
+                $this->db->bind(':slots', $newlyEnrolledCount);
+                $this->db->bind(':ref', $sessionId);
+                $this->db->bind(':desc', "Bulk Roster Upload: Consumed {$newlyEnrolledCount} slots.");
+                $this->db->execute();
+
+                // Deduct from available slots directly
+                $this->db->query("UPDATE school_slot_wallets SET available_slots = available_slots - :slots WHERE school_id = :sch");
+                $this->db->bind(':slots', $newlyEnrolledCount);
+                $this->db->bind(':sch', $session['school_id']);
+                $this->db->execute();
+            }
+            
+            $this->db->commit();
+            fclose($handle);
+
+            // Construct dynamic UI message
+            $msg = $skippedDueToLimits 
+                ? "Uploaded {$newlyEnrolledCount} students successfully, but stopped early because you ran out of Available Slots."
+                : "Bulk Roster ingested successfully. ({$newlyEnrolledCount} new students enrolled)";
+
+            return json_encode(['success' => true, 'message' => $msg]);
 
         } catch (Exception $e) {
             $this->db->rollBack();

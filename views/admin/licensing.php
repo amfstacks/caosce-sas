@@ -55,7 +55,7 @@ include '../views/layouts/header.php'
                 <div x-show="true" class="space-y-8" x-cloak>
                     
                     <!-- 4-Column Balance Cards -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         <!-- Available Slots -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
@@ -64,20 +64,14 @@ include '../views/layouts/header.php'
                             <p class="text-xs text-slate-500 mt-2">Ready to be assigned to exam sessions.</p>
                         </div>
 
-                        <!-- Escrowed Slots -->
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
-                            <div class="absolute top-0 right-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
-                            <p class="text-xs font-bold uppercase tracking-wider text-amber-600 mb-1">Escrowed</p>
-                            <div class="text-3xl font-black text-slate-900" x-text="wallet.escrow_slots || 0">0</div>
-                            <p class="text-xs text-slate-500 mt-2">Locked for pending examinations.</p>
-                        </div>
+                
                         
                         <!-- Used Slots -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden hover:shadow-md transition-shadow">
                             <div class="absolute top-0 right-0 w-24 h-24 bg-rose-50 rounded-bl-full -mr-4 -mt-4 pointer-events-none"></div>
                             <p class="text-xs font-bold uppercase tracking-wider text-rose-600 mb-1">Total Used</p>
                             <div class="text-3xl font-black text-slate-900" x-text="wallet.used_slots || 0">0</div>
-                            <p class="text-xs text-slate-500 mt-2">Permanently deducted from synced exams.</p>
+                            <p class="text-xs text-slate-500 mt-2">Used Exam slots.</p>
                         </div>
 
                         <!-- Lifetime Total -->
@@ -136,20 +130,24 @@ include '../views/layouts/header.php'
                                     <template x-for="log in ledger" :key="log.id">
                                         <tr class="hover:bg-slate-50/80 transition-colors">
                                             <td class="whitespace-nowrap py-4 pl-6 pr-3">
+                                                <!-- Updated Badge Colors -->
                                                 <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider"
                                                       :class="{
                                                           'bg-emerald-100 text-emerald-700': log.transaction_type === 'purchase',
-                                                          'bg-amber-100 text-amber-700': log.transaction_type === 'escrow_hold',
-                                                          'bg-blue-100 text-blue-700': log.transaction_type === 'escrow_refund',
-                                                          'bg-slate-100 text-slate-600': log.transaction_type === 'deduction'
+                                                          'bg-rose-100 text-rose-700': log.transaction_type === 'usage' || log.transaction_type === 'deduction',
+                                                          'bg-blue-100 text-blue-700': log.transaction_type === 'refund' || log.transaction_type === 'escrow_refund',
+                                                          'bg-amber-100 text-amber-700': log.transaction_type === 'escrow_hold'
                                                       }"
                                                       x-text="log.transaction_type"></span>
                                             </td>
                                             <td class="px-3 py-4 text-sm font-medium text-slate-800" x-text="log.description"></td>
+                                            
+                                            <!-- Updated Slot Colors & +/- Logic -->
                                             <td class="whitespace-nowrap px-3 py-4 text-center text-sm font-bold"
-                                                :class="log.transaction_type === 'deduction' ? 'text-red-600' : 'text-emerald-600'">
-                                                <span x-text="log.transaction_type === 'deduction' ? '-' + log.slots_amount : '+' + log.slots_amount"></span>
+                                                :class="(log.transaction_type === 'usage' || log.transaction_type === 'deduction') ? 'text-rose-600' : 'text-emerald-600'">
+                                                <span x-text="(log.transaction_type === 'usage' || log.transaction_type === 'deduction') ? '-' + log.slots_amount : '+' + log.slots_amount"></span>
                                             </td>
+                                            
                                             <td class="whitespace-nowrap px-3 py-4 text-right text-sm font-bold text-slate-900" x-text="formatNaira(log.naira_value)"></td>
                                             <td class="whitespace-nowrap py-4 pl-3 pr-6 text-right text-sm text-slate-500" x-text="log.created_at"></td>
                                         </tr>
@@ -388,12 +386,12 @@ async initiatePaystackPayment() {
 
         // 2. Open Paystack using the Backend's strict data
         let handler = PaystackPop.setup({
-            key: 'pk_test_165ca8d2378b5ab6c7430de54a306ca75947759c', 
+            key: 'pk_live_c90dca31bf3c0e5f3bce37ff80cfc1b8536f8c6e', 
             email: securePayload.email,
             amount: securePayload.amount_kobo,
             currency: 'NGN',
             ref: securePayload.reference, // The backend-generated atomic reference
-            // split_code: 'SPL_p6gm6zFsVy',
+            split_code: 'SPL_p6gm6zFsVy',
             callback: (response) => {
                 // 3. Verify Payment
                 this.verifyPaystackTransaction(response.reference);

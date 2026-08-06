@@ -3,9 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing & Calculator | CAOSCE Systems</title>
 
-    <meta name="description" content="Transparent, pay-as-you-go pricing for CAOSCE offline clinical examination software. Only pay for the exam slots you use.">
+    <!-- Primary Meta Tags -->
+    <title>Pricing & Calculator | CAOSCE Systems</title>
+    <meta name="title" content="Pricing & Calculator | CAOSCE Systems">
+    <meta name="description" content="Transparent, volume-based pricing for CAOSCE offline clinical examination software. Calculate your investment and only pay for the student exam slots you use.">
+    <meta name="keywords" content="CAOSCE pricing, OSCE examination software, offline clinical assessment, medical education technology, pay as you go CBT, institutional software licensing">
+    <meta name="author" content="CAOSCE Systems">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#2563eb"> <!-- Matches your Tailwind blue-600 -->
+
+    <!-- Open Graph / Facebook / LinkedIn / WhatsApp -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/pricing">
+    <meta property="og:site_name" content="CAOSCE Systems">
+    <meta property="og:title" content="Pricing & Calculator | CAOSCE Systems">
+    <meta property="og:description" content="Calculate your volume discount for offline clinical examination deployments. No hidden fees, just smart pricing for smart campuses.">
+    <!-- Note: Make sure to upload a nice preview image to this path -->
+    <meta property="og:image" content="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/public/assets/og-pricing-preview.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/pricing">
+    <meta property="twitter:title" content="Pricing & Calculator | CAOSCE Systems">
+    <meta property="twitter:description" content="Calculate your volume discount for offline clinical examination deployments. No hidden fees, just smart pricing for smart campuses.">
+    <meta property="twitter:image" content="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/public/assets/og-pricing-preview.jpg">
+
+    <!-- Canonical Link (Prevents duplicate content issues for SEO) -->
+    <link rel="canonical" href="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/pricing">
     
     <!-- Favicon Suite -->
     <link rel="icon" type="image/png" sizes="32x32" href="<?php echo defined('BASE_PATH') ? BASE_PATH : ''; ?>/public/assets/favicon-32x32.png">
@@ -17,32 +42,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .glass-panel { 
-            background: rgba(255, 255, 255, 0.9); 
-            backdrop-filter: blur(20px); 
-            -webkit-backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
-        }
         [x-cloak] { display: none !important; }
-        
-        /* Custom range slider styling */
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 24px;
-            width: 24px;
-            border-radius: 50%;
-            background: #2563eb;
-            cursor: pointer;
-            margin-top: -8px;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 8px;
-            cursor: pointer;
-            background: #e2e8f0;
-            border-radius: 4px;
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white" x-data="pricingController()">
@@ -106,10 +106,10 @@
                             <span class="text-slate-400 font-semibold">Slots needed</span>
                         </div>
                         
-                        <!-- Range Slider -->
-                        <input type="range" x-model.number="slots" min="1" max="2500" step="1" class="w-full appearance-none bg-transparent">
+                        <!-- Range Slider (Fixed and Optimized for Tailwind) -->
+                        <input type="range" x-model.number="slots" min="1" max="2500" step="1" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
                         
-                        <div class="flex justify-between text-xs font-bold text-slate-400 mt-2 px-1">
+                        <div class="flex justify-between text-xs font-bold text-slate-400 mt-3 px-1">
                             <span>1</span>
                             <span>1,250</span>
                             <span>2,500+</span>
@@ -157,7 +157,7 @@
                             </li>
                         </ul>
 
-                        <button @click="window.location.href='admin/register'" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]">
+                        <button @click="window.location.href='admin/login'" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl transition-all shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)]">
                             Setup Workspace
                         </button>
                     </div>
@@ -219,7 +219,7 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- FAIR-USE ESCROW EXPLANATION                -->
+    <!-- HOW YOUR SLOT WALLET WORKS                 -->
     <!-- ========================================== -->
     <div class="bg-slate-50 py-24 border-t border-slate-200">
         <div class="max-w-4xl mx-auto px-6">
@@ -230,21 +230,21 @@
                     <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center flex-shrink-0 text-blue-600 font-bold text-xl">1</div>
                     <div>
                         <h4 class="text-lg font-bold text-slate-900 mb-2">Pre-Fund Your Portal</h4>
-                        <p class="text-slate-600 leading-relaxed">Deposit funds into your CAOSCE portal to purchase your required slots upfront. If you need 200 slots, your balance is exactly 200 available slots.</p>
+                        <p class="text-slate-600 leading-relaxed">Deposit funds into your CAOSCE portal to purchase your required slots upfront. If you purchase 200 slots, your balance will immediately display exactly 200 available slots.</p>
                     </div>
                 </div>
                 <div class="flex gap-6 items-start">
                     <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center flex-shrink-0 text-amber-500 font-bold text-xl">2</div>
                     <div>
-                        <h4 class="text-lg font-bold text-slate-900 mb-2">The Escrow Hold</h4>
-                        <p class="text-slate-600 leading-relaxed">When you assign 150 students to an upcoming OSCE exam, the system temporarily places 150 slots into an "Escrow Hold." They belong to you, but cannot be double-spent on another exam.</p>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Direct Roster Allocation</h4>
+                        <p class="text-slate-600 leading-relaxed">When you assign 150 students to an upcoming OSCE exam roster, the system instantly consumes 150 slots from your wallet. This ensures your exam is fully funded and guaranteed to sync seamlessly on exam day.</p>
                     </div>
                 </div>
                 <div class="flex gap-6 items-start">
                     <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center flex-shrink-0 text-emerald-500 font-bold text-xl">3</div>
                     <div>
-                        <h4 class="text-lg font-bold text-slate-900 mb-2">Zero-Waste Deductions</h4>
-                        <p class="text-slate-600 leading-relaxed">Slots are ONLY permanently deducted when an exam result is successfully synced. If a student is absent, drops the course, or is deleted from the roster prior to the exam, their reserved slot is automatically returned to your available balance. <strong>You never pay for absentees.</strong></p>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2">Automatic Zero-Waste Refunds</h4>
+                        <p class="text-slate-600 leading-relaxed">Slots are completely risk-free. If a student is absent, drops the course, or is removed from the roster prior to taking the exam, their consumed slot is instantly and automatically refunded back to your available balance. <strong>You never pay for absentees.</strong></p>
                     </div>
                 </div>
             </div>
@@ -261,40 +261,14 @@
     <!-- ========================================== -->
     <!-- ALPINE JS CONTROLLER                       -->
     <!-- ========================================== -->
-   <!-- ========================================== -->
-    <!-- ALPINE JS CONTROLLER                       -->
-    <!-- ========================================== -->
     <script>
         function pricingController() {
             return {
-                slots: 250, // Initial default value
+                slots: 100, // Initial default value
                 tiers: [], // Will hold data from DB
                 isReady: false,
 
                 // Initialize: Fetch data from API on load
-                // async init() {
-                //     let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
-                //     try {
-                //         let response = await fetch(basePath + '/api/pricing/tiers');
-                //         let data = await response.json();
-                        
-                //         if (data.success && data.payload.length > 0) {
-                //             // Parse DB strings into numbers for accurate math
-                //             this.tiers = data.payload.map(tier => ({
-                //                 name: tier.tier_name,
-                //                 min: parseInt(tier.min_slots),
-                //                 max: parseInt(tier.max_slots),
-                //                 price: parseFloat(tier.price_per_slot)
-                //             }));
-                //         }
-                //     } catch (error) {
-                //         console.error('Failed to load dynamic pricing', error);
-                //         // Optional: Provide fallback hardcoded tiers here if DB fails
-                //     } finally {
-                //         this.isReady = true;
-                //     }
-                // },
-// Initialize: Fetch data from API on load
                 async init() {
                     let basePath = '<?php echo defined("BASE_PATH") ? BASE_PATH : ""; ?>';
                     

@@ -105,6 +105,7 @@
                     <div class="h-4 w-px bg-slate-700"></div>
 
                     <a href="#how-it-works" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">How it Works</a>
+                    <a href="pricing" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Pricing</a>
                     <a href="#features" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Features</a>
                     <button @click="$dispatch('open-contact')" class="text-sm font-semibold text-slate-300 hover:text-white transition-colors">Contact Us</button>
                     
@@ -148,6 +149,7 @@
                 <div class="w-12 h-px bg-slate-700 mx-auto"></div>
 
                 <a href="#how-it-works" @click="mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">How it Works</a>
+                <a href="pricing" @click="mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">Pricing</a>
                 <a href="#features" @click="mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">Features</a>
                 <button @click="$dispatch('open-contact'); mobileMenuOpen = false" class="text-base font-bold text-slate-300 hover:text-white">Contact Us</button>
                 
